@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Valve Sizing</title>
+  <style>
+    *, *::before, *::after {
+      box-sizing: border-box; margin: 0; padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    html { height: -webkit-fill-available; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: #f2f2f7;
+      color: #000;
+      min-height: 100vh;
+      min-height: -webkit-fill-available;
+    }
+
+    header {
+      background: #fff;
+      padding-top: max(16px, env(safe-area-inset-top));
+      padding-left: max(20px, env(safe-area-inset-left));
+      padding-right: max(20px, env(safe-area-inset-right));
+      padding-bottom: 12px;
+      border-bottom: 1px solid #e5e5ea;
+    }
+
+    header h1 {
+      font-size: 28px;
+      font-weight: 700;
+      letter-spacing: -0.3px;
+    }
+
+    main {
+      padding: 20px 16px calc(20px + env(safe-area-inset-bottom));
+      padding-left: max(16px, env(safe-area-inset-left));
+      padding-right: max(16px, env(safe-area-inset-right));
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    /* Input section */
+    .input-section {
+      margin-bottom: 20px;
+    }
+
+    .input-section label {
+      display: block;
+      font-size: 17px;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    .input-wrap {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .input-wrap input {
+      flex: 1;
+      padding: 10px 14px;
+      font-size: 16px; /* must be >= 16px to prevent iOS auto-zoom */
+      border: 1px solid #c7c7cc;
+      border-radius: 10px;
+      outline: none;
+      background: #fff;
+      transition: border-color 0.15s;
+      -webkit-appearance: none;
+    }
+
+    .input-wrap input:focus {
+      border-color: #007aff;
+    }
+
+    .clear-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 4px;
+      display: flex;
+      align-items: center;
+      opacity: 0.6;
+    }
+
+    .clear-btn:hover { opacity: 1; }
+
+    .clear-btn svg { width: 22px; height: 22px; fill: #8e8e93; }
+
+    .clear-btn.hidden { visibility: hidden; }
+
+    /* Segmented control */
+    .seg-control {
+      display: flex;
+      background: #e5e5ea;
+      border-radius: 9px;
+      padding: 2px;
+      margin-bottom: 20px;
+    }
+
+    .seg-control button {
+      flex: 1;
+      padding: 7px 12px;
+      border: none;
+      border-radius: 7px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      background: transparent;
+      color: #3c3c43;
+      transition: background 0.15s, color 0.15s, box-shadow 0.15s;
+      touch-action: manipulation;
+      -webkit-appearance: none;
+    }
+
+    .seg-control button.active {
+      background: #fff;
+      color: #000;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.18);
+    }
+
+    /* By Valve view */
+    #view-by-valve {
+      display: grid;
+      gap: 20px;
+      grid-template-columns: 1fr;
+    }
+
+    @media (min-width: 640px) {
+      #view-by-valve { grid-template-columns: 1fr 1fr; }
+    }
+
+    @media (min-width: 960px) {
+      #view-by-valve { grid-template-columns: 1fr 1fr 1fr; }
+    }
+
+    .valve-card {
+      background: #fff;
+      border-radius: 12px;
+      padding: 16px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+
+    .valve-card h2 {
+      font-size: 20px;
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    .conditions { display: flex; flex-direction: column; gap: 8px; }
+
+    .condition-row {
+      display: flex;
+      align-items: center;
+      padding: 12px 16px;
+      border-radius: 10px;
+      font-size: 15px;
+      gap: 0;
+    }
+
+    .condition-row.plain {
+      background: rgba(0,0,0,0.06);
+    }
+
+    .col-name  { width: 80px; text-align: left; }
+    .col-area  { flex: 1; text-align: right; }
+    .col-pct   { width: 80px; text-align: right; font-weight: 600; }
+
+    /* By Oversize view */
+    #view-by-oversize { display: none; }
+
+    .oversize-table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0 6px;
+    }
+
+    .oversize-table thead th {
+      padding: 8px 14px;
+      font-size: 13px;
+      font-weight: 600;
+      color: #6c6c70;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      cursor: pointer;
+      user-select: none;
+      white-space: nowrap;
+      background: transparent;
+      border-bottom: 2px solid #e5e5ea;
+    }
+
+    .oversize-table thead th:hover { color: #000; }
+
+    .oversize-table thead th.sort-active { color: #007aff; border-bottom-color: #007aff; }
+
+    .sort-arrow { margin-left: 4px; font-size: 11px; }
+
+    .oversize-table tbody tr { border-radius: 10px; }
+
+    .oversize-table tbody td {
+      padding: 12px 14px;
+      font-size: 15px;
+    }
+
+    .oversize-table tbody td:first-child { border-radius: 10px 0 0 10px; }
+    .oversize-table tbody td:last-child  { border-radius: 0 10px 10px 0; font-weight: 600; }
+
+    .col-size { width: 70px; }
+    .col-name { width: 100px; }
+    .col-area { text-align: right; }
+    .col-pct  { text-align: right; width: 110px; }
+
+    /* Table scroll wrapper for narrow screens */
+    .table-scroll {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      border-radius: 8px;
+    }
+
+    /* Keyboard "Done" toolbar — shown when input is focused on touch devices */
+    #kbd-toolbar {
+      display: none;
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: #d1d3d8;
+      border-top: 1px solid #b0b3ba;
+      padding: 8px 16px;
+      padding-bottom: max(8px, env(safe-area-inset-bottom));
+      justify-content: flex-end;
+      z-index: 100;
+    }
+
+    #kbd-toolbar.visible { display: flex; }
+
+    #kbd-toolbar button {
+      background: none;
+      border: none;
+      font-size: 17px;
+      font-weight: 600;
+      color: #007aff;
+      padding: 4px 8px;
+      cursor: pointer;
+      touch-action: manipulation;
+    }
+
+    .oversize-table thead th {
+      -webkit-user-select: none;
+      user-select: none;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>Valve Sizing</h1>
+</header>
+
+<main>
+  <!-- Input -->
+  <div class="input-section">
+    <label for="area-input">Annulus Area (mm²)</label>
+    <div class="input-wrap">
+      <input id="area-input" type="text" inputmode="decimal" placeholder="Enter area" autocomplete="off" autocorrect="off" />
+      <button class="clear-btn hidden" id="clear-btn" aria-label="Clear">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 13.59L15.59 17 12 13.41 8.41 17 7 15.59 10.59 12 7 8.41 8.41 7 12 10.59 15.59 7 17 8.41 13.41 12 17 15.59z"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- View mode tabs -->
+  <div class="seg-control">
+    <button id="tab-by-valve" class="active" onclick="setView('valve')">By Valve Size</button>
+    <button id="tab-by-oversize" onclick="setView('oversize')">By Oversize</button>
+  </div>
+
+  <!-- By Valve view -->
+  <div id="view-by-valve"></div>
+
+  <!-- By Oversize view -->
+  <div id="view-by-oversize">
+    <div class="table-scroll">
+    <table class="oversize-table">
+      <thead>
+        <tr>
+          <th class="col-size" onclick="setSort('size')">
+            Size <span class="sort-arrow" id="arrow-size"></span>
+          </th>
+          <th class="col-name" onclick="setSort('name')">
+            Condition <span class="sort-arrow" id="arrow-name"></span>
+          </th>
+          <th class="col-area" onclick="setSort('area')">
+            Area (mm²) <span class="sort-arrow" id="arrow-area"></span>
+          </th>
+          <th class="col-pct" onclick="setSort('pct')">
+            Oversize % <span class="sort-arrow" id="arrow-pct"></span>
+          </th>
+        </tr>
+      </thead>
+      <tbody id="oversize-tbody"></tbody>
+    </table>
+    </div>
+  </div>
+</main>
+
+<!-- iOS keyboard Done toolbar -->
+<div id="kbd-toolbar">
+  <button onclick="document.getElementById('area-input').blur()">Done</button>
+</div>
+
+<script>
+  // ── Data ──────────────────────────────────────────────────────────────────
+  const valveSizes = [
+    { id: 1, size: 23, conditions: [
+      { id: "23-nominal", name: "Nominal", area: 406 },
+      { id: "23-plus1",   name: "+1cc",   area: 428 },
+      { id: "23-plus2",   name: "+2cc",   area: 450 },
+      { id: "23-minus1",  name: "-1cc",   area: 384 },
+      { id: "23-minus2",  name: "-2cc",   area: 362 },
+    ]},
+    { id: 2, size: 26, conditions: [
+      { id: "26-nominal", name: "Nominal", area: 518 },
+      { id: "26-plus1",   name: "+1cc",   area: 543 },
+      { id: "26-plus2",   name: "+2cc",   area: 568 },
+      { id: "26-plus3",   name: "+3cc",   area: 593 },
+      { id: "26-plus4",   name: "+4cc",   area: 642 },
+      { id: "26-minus1",  name: "-1cc",   area: 493 },
+      { id: "26-minus2",  name: "-2cc",   area: 468 },
+    ]},
+    { id: 3, size: 29, conditions: [
+      { id: "29-nominal", name: "Nominal", area: 649 },
+      { id: "29-plus1",   name: "+1cc",   area: 672 },
+      { id: "29-plus2",   name: "+2cc",   area: 695 },
+      { id: "29-plus3",   name: "+3cc",   area: 719 },
+      { id: "29-minus1",  name: "-1cc",   area: 626 },
+      { id: "29-minus2",  name: "-2cc",   area: 603 },
+    ]},
+  ];
+
+  // ── State ─────────────────────────────────────────────────────────────────
+  let inputArea = null;
+  let currentView = 'valve';
+  let sortCol = 'pct';
+  let sortDir = 'asc';
+
+  // ── Color logic ───────────────────────────────────────────────────────────
+  function getHeatMapColor(oversizing) {
+    if (oversizing >= -5 && oversizing <= 20) {
+      const normalized = (oversizing - (-5)) / 25;
+      const r = Math.round(144 - normalized * 144);
+      const g = Math.round(238 - normalized * 138);
+      const b = Math.round(144 - normalized * 144);
+      return { r, g, b };
+    }
+    const distance = oversizing < -5 ? Math.abs(oversizing - (-5)) : Math.abs(oversizing - 20);
+    const normalized = Math.min(distance / 50, 1.0);
+    const r = Math.round(255 - normalized * 116);
+    const g = Math.round(102 - normalized * 102);
+    const b = Math.round(102 - normalized * 102);
+    return { r, g, b };
+  }
+
+  function getTextColor({ r, g, b }) {
+    const luminance = 0.299 * (r / 255) + 0.587 * (g / 255) + 0.114 * (b / 255);
+    return luminance > 0.5 ? '#000' : '#fff';
+  }
+
+  function colorStyle(oversizing) {
+    const rgb = getHeatMapColor(oversizing);
+    const bg = `rgb(${rgb.r},${rgb.g},${rgb.b})`;
+    const fg = getTextColor(rgb);
+    return `background:${bg};color:${fg};box-shadow:0 1px 4px rgba(0,0,0,0.1);`;
+  }
+
+  // ── Calculation ───────────────────────────────────────────────────────────
+  function calcOversizing(valveArea) {
+    if (inputArea == null || inputArea <= 0) return null;
+    return ((valveArea / inputArea) - 1) * 100;
+  }
+
+  function fmt1(n) { return n.toFixed(1); }
+
+  // ── Render: By Valve ──────────────────────────────────────────────────────
+  function renderByValve() {
+    const container = document.getElementById('view-by-valve');
+    container.innerHTML = valveSizes.map(vs => {
+      const rows = vs.conditions.map(c => {
+        const ov = calcOversizing(c.area);
+        if (ov !== null) {
+          return `
+            <div class="condition-row" style="${colorStyle(ov)}">
+              <span class="col-name">${c.name}</span>
+              <span class="col-area">${fmt1(c.area)}</span>
+              <span class="col-pct">${fmt1(ov)}%</span>
+            </div>`;
+        } else {
+          return `
+            <div class="condition-row plain">
+              <span class="col-name">${c.name}</span>
+              <span class="col-area">${fmt1(c.area)}</span>
+              <span class="col-pct">—</span>
+            </div>`;
+        }
+      }).join('');
+
+      return `
+        <div class="valve-card">
+          <h2>${vs.size}mm Valve</h2>
+          <div class="conditions">${rows}</div>
+        </div>`;
+    }).join('');
+  }
+
+  // ── Render: By Oversize ───────────────────────────────────────────────────
+  // Natural order index so we can fall back to original order as a tiebreaker
+  let naturalIndex = 0;
+  const allItems = [];
+  for (const vs of valveSizes) {
+    for (const c of vs.conditions) {
+      allItems.push({ size: vs.size, cond: c, naturalIndex: naturalIndex++ });
+    }
+  }
+
+  function renderByOversize() {
+    const tbody = document.getElementById('oversize-tbody');
+
+    // Update header highlights and arrows
+    const cols = ['size', 'name', 'area', 'pct'];
+    cols.forEach(col => {
+      const th = document.querySelector(`th.col-${col === 'size' ? 'size' : col === 'name' ? 'name' : col === 'area' ? 'area' : 'pct'}`);
+      const arrow = document.getElementById(`arrow-${col}`);
+      if (col === sortCol) {
+        th.classList.add('sort-active');
+        arrow.textContent = sortDir === 'asc' ? '▲' : '▼';
+      } else {
+        th.classList.remove('sort-active');
+        arrow.textContent = '';
+      }
+    });
+
+    // Build items with current oversizing
+    const items = allItems.map(item => ({
+      ...item,
+      ov: calcOversizing(item.cond.area)
+    }));
+
+    // Condition name natural sort key (Nominal first, then +1cc, +2cc… then -1cc, -2cc…)
+    const condOrder = name => {
+      if (name === 'Nominal') return 0;
+      const m = name.match(/([+-])(\d+)cc/);
+      if (!m) return 99;
+      return m[1] === '+' ? parseInt(m[2]) : -parseInt(m[2]);
+    };
+
+    items.sort((a, b) => {
+      let va, vb;
+      if (sortCol === 'size') {
+        va = a.size; vb = b.size;
+      } else if (sortCol === 'name') {
+        va = condOrder(a.cond.name); vb = condOrder(b.cond.name);
+      } else if (sortCol === 'area') {
+        va = a.cond.area; vb = b.cond.area;
+      } else {
+        // pct — nulls go to end regardless of direction
+        if (a.ov === null && b.ov === null) return a.naturalIndex - b.naturalIndex;
+        if (a.ov === null) return 1;
+        if (b.ov === null) return -1;
+        va = a.ov; vb = b.ov;
+      }
+      const cmp = va < vb ? -1 : va > vb ? 1 : a.naturalIndex - b.naturalIndex;
+      return sortDir === 'asc' ? cmp : -cmp;
+    });
+
+    tbody.innerHTML = items.map(item => {
+      const ovCell = item.ov !== null
+        ? `<td class="col-pct">${fmt1(item.ov)}%</td>`
+        : `<td class="col-pct" style="color:#8e8e93">—</td>`;
+      const rowStyle = item.ov !== null ? colorStyle(item.ov) : 'background:#f2f2f7;';
+      return `
+        <tr style="${rowStyle}">
+          <td class="col-size">${item.size}mm</td>
+          <td class="col-name">${item.cond.name}</td>
+          <td class="col-area">${fmt1(item.cond.area)}</td>
+          ${ovCell}
+        </tr>`;
+    }).join('');
+  }
+
+  // ── View switching ────────────────────────────────────────────────────────
+  function setView(view) {
+    currentView = view;
+    document.getElementById('view-by-valve').style.display = view === 'valve' ? 'grid' : 'none';
+    document.getElementById('view-by-oversize').style.display = view === 'oversize' ? 'block' : 'none';
+    document.getElementById('tab-by-valve').classList.toggle('active', view === 'valve');
+    document.getElementById('tab-by-oversize').classList.toggle('active', view === 'oversize');
+    render();
+  }
+
+  function setSort(col) {
+    if (sortCol === col) {
+      sortDir = sortDir === 'asc' ? 'desc' : 'asc';
+    } else {
+      sortCol = col;
+      sortDir = 'asc';
+    }
+    renderByOversize();
+  }
+
+  function render() {
+    renderByValve();
+    if (currentView === 'oversize') renderByOversize();
+  }
+
+  // ── Input handling ────────────────────────────────────────────────────────
+  const areaInput = document.getElementById('area-input');
+  const clearBtn  = document.getElementById('clear-btn');
+  const kbdToolbar = document.getElementById('kbd-toolbar');
+
+  areaInput.addEventListener('input', () => {
+    const val = parseFloat(areaInput.value);
+    inputArea = isNaN(val) ? null : val;
+    clearBtn.classList.toggle('hidden', areaInput.value === '');
+    render();
+  });
+
+  areaInput.addEventListener('focus', () => kbdToolbar.classList.add('visible'));
+  areaInput.addEventListener('blur',  () => kbdToolbar.classList.remove('visible'));
+
+  clearBtn.addEventListener('click', () => {
+    areaInput.value = '';
+    inputArea = null;
+    clearBtn.classList.add('hidden');
+    areaInput.blur();
+    render();
+  });
+
+  // ── Init ──────────────────────────────────────────────────────────────────
+  render();
+</script>
+</body>
+</html>
