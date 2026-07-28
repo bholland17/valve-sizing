@@ -55,6 +55,9 @@
       margin-bottom: 8px;
     }
 
+    .input-group { margin-bottom: 14px; }
+    .input-group:last-child { margin-bottom: 0; }
+
     .input-wrap {
       display: flex;
       align-items: center;
@@ -93,6 +96,21 @@
 
     .clear-btn.hidden { visibility: hidden; }
 
+    /* TAV-in-SAV toggle row */
+    .toggle-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #fff;
+      border: 1px solid #c7c7cc;
+      border-radius: 10px;
+      padding: 10px 14px;
+      margin-top: 14px;
+      font-size: 15px;
+      font-weight: 500;
+    }
+    .toggle-row input { width: 20px; height: 20px; }
+
     /* Segmented control */
     .seg-control {
       display: flex;
@@ -122,6 +140,10 @@
       color: #000;
       box-shadow: 0 1px 3px rgba(0,0,0,0.18);
     }
+
+    /* Platform selector sits a bit prouder than the sub-view control */
+    .platform-control { margin-bottom: 18px; }
+    .platform-control button { padding: 9px 12px; font-size: 15px; font-weight: 600; }
 
     /* By Valve view */
     #view-by-valve {
@@ -221,6 +243,53 @@
       border-radius: 8px;
     }
 
+    /* Evolut selection view */
+    #view-evolut { display: none; }
+
+    .evolut-table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0 6px;
+    }
+    .evolut-table thead th {
+      padding: 8px 12px;
+      font-size: 12px;
+      font-weight: 600;
+      color: #6c6c70;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+      white-space: nowrap;
+      border-bottom: 2px solid #e5e5ea;
+      text-align: right;
+    }
+    .evolut-table thead th:first-child { text-align: left; }
+    .evolut-table tbody td {
+      padding: 12px 12px;
+      font-size: 15px;
+      text-align: right;
+      background: #fff;
+    }
+    .evolut-table tbody td:first-child { text-align: left; font-weight: 700; border-radius: 10px 0 0 10px; }
+    .evolut-table tbody td:last-child { border-radius: 0 10px 10px 0; }
+    .evolut-table tbody tr.fit td { background: #d6f3df; }
+    .evolut-table tbody tr.fit td:first-child { box-shadow: inset 3px 0 0 #34c759; }
+
+    .fit-flag { font-size: 12px; font-weight: 600; color: #248a3d; }
+
+    .derived {
+      font-size: 13px;
+      color: #6c6c70;
+      margin: -6px 0 16px;
+    }
+    .derived b { color: #000; }
+
+    .note {
+      font-size: 12px;
+      line-height: 1.5;
+      color: #8e8e93;
+      margin-top: 18px;
+    }
+
     /* Keyboard "Done" toolbar — shown when input is focused on touch devices */
     #kbd-toolbar {
       display: none;
@@ -248,11 +317,6 @@
       cursor: pointer;
       touch-action: manipulation;
     }
-
-    .oversize-table thead th {
-      -webkit-user-select: none;
-      user-select: none;
-    }
   </style>
 </head>
 <body>
@@ -262,29 +326,78 @@
 </header>
 
 <main>
-  <!-- Input -->
-  <div class="input-section">
-    <label for="area-input">Annulus Area (mm²)</label>
-    <div class="input-wrap">
-      <input id="area-input" type="text" inputmode="decimal" placeholder="Enter area" autocomplete="off" autocorrect="off" />
-      <button class="clear-btn hidden" id="clear-btn" aria-label="Clear">
-        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 13.59L15.59 17 12 13.41 8.41 17 7 15.59 10.59 12 7 8.41 8.41 7 12 10.59 15.59 7 17 8.41 13.41 12 17 15.59z"/>
-        </svg>
-      </button>
+  <!-- Platform selector -->
+  <div class="seg-control platform-control">
+    <button id="plat-sapien" class="active" onclick="setPlatform('sapien')">Edwards SAPIEN</button>
+    <button id="plat-evolut" onclick="setPlatform('evolut')">Evolut FX+</button>
+  </div>
+
+  <!-- SAPIEN inputs -->
+  <div class="input-section" id="sapien-inputs">
+    <div class="input-group">
+      <label for="area-input">Annulus Area (mm²)</label>
+      <div class="input-wrap">
+        <input id="area-input" type="text" inputmode="decimal" placeholder="Enter area" autocomplete="off" autocorrect="off" />
+        <button class="clear-btn hidden" id="clear-area" aria-label="Clear">
+          <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 13.59L15.59 17 12 13.41 8.41 17 7 15.59 10.59 12 7 8.41 8.41 7 12 10.59 15.59 7 17 8.41 13.41 12 17 15.59z"/>
+          </svg>
+        </button>
+      </div>
     </div>
   </div>
 
-  <!-- View mode tabs -->
-  <div class="seg-control">
+  <!-- Evolut inputs -->
+  <div class="input-section" id="evolut-inputs" style="display:none;">
+    <div class="input-group">
+      <label for="perim-input">Annulus Perimeter (mm)</label>
+      <div class="input-wrap">
+        <input id="perim-input" type="text" inputmode="decimal" placeholder="Enter perimeter" autocomplete="off" autocorrect="off" />
+        <button class="clear-btn hidden" id="clear-perim" aria-label="Clear">
+          <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 13.59L15.59 17 12 13.41 8.41 17 7 15.59 10.59 12 7 8.41 8.41 7 12 10.59 15.59 7 17 8.41 13.41 12 17 15.59z"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+    <div class="input-group">
+      <label for="sovd-input">Sinus of Valsalva Diameter (mm) — optional</label>
+      <div class="input-wrap">
+        <input id="sovd-input" type="text" inputmode="decimal" placeholder="Enter SoV diameter" autocomplete="off" autocorrect="off" />
+        <button class="clear-btn hidden" id="clear-sovd" aria-label="Clear">
+          <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 13.59L15.59 17 12 13.41 8.41 17 7 15.59 10.59 12 7 8.41 8.41 7 12 10.59 15.59 7 17 8.41 13.41 12 17 15.59z"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+    <div class="input-group">
+      <label for="sovh-input">Sinus of Valsalva Height (mm) — optional</label>
+      <div class="input-wrap">
+        <input id="sovh-input" type="text" inputmode="decimal" placeholder="Enter SoV height" autocomplete="off" autocorrect="off" />
+        <button class="clear-btn hidden" id="clear-sovh" aria-label="Clear">
+          <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 13.59L15.59 17 12 13.41 8.41 17 7 15.59 10.59 12 7 8.41 8.41 7 12 10.59 15.59 7 17 8.41 13.41 12 17 15.59z"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+    <div class="toggle-row">
+      <span>TAV-in-SAV (extends 23&nbsp;mm lower bound)</span>
+      <input type="checkbox" id="tis-toggle" onchange="onTisToggle()" />
+    </div>
+  </div>
+
+  <!-- SAPIEN view mode tabs -->
+  <div class="seg-control" id="sapien-tabs">
     <button id="tab-by-valve" class="active" onclick="setView('valve')">By Valve Size</button>
     <button id="tab-by-oversize" onclick="setView('oversize')">By Oversize</button>
   </div>
 
-  <!-- By Valve view -->
+  <!-- SAPIEN: By Valve view -->
   <div id="view-by-valve"></div>
 
-  <!-- By Oversize view -->
+  <!-- SAPIEN: By Oversize view -->
   <div id="view-by-oversize">
     <div class="table-scroll">
     <table class="oversize-table">
@@ -308,16 +421,51 @@
     </table>
     </div>
   </div>
+
+  <!-- Evolut FX+ selection view -->
+  <div id="view-evolut">
+    <div class="derived" id="evolut-derived"></div>
+    <div class="table-scroll">
+    <table class="evolut-table">
+      <thead>
+        <tr>
+          <th>Valve</th>
+          <th>Perimeter (mm)</th>
+          <th>Ø (mm)</th>
+          <th>SoV Ø</th>
+          <th>SoV ht</th>
+        </tr>
+      </thead>
+      <tbody id="evolut-tbody"></tbody>
+    </table>
+    </div>
+    <p class="note">
+      Evolut FX+ sizes by annulus perimeter/diameter with sinus-of-Valsalva minimums. A row turns green
+      when the entered perimeter falls in range and any entered SoV values meet the minimums. 23&nbsp;mm dagger
+      values (17&nbsp;mm / 53.4&nbsp;mm) apply to TAV-in-SAV only, which is not approved in low- and
+      intermediate-risk patients. Reference aid only — confirm against the current IFU and heart-team judgment.
+    </p>
+  </div>
 </main>
 
 <!-- iOS keyboard Done toolbar -->
 <div id="kbd-toolbar">
-  <button onclick="document.getElementById('area-input').blur()">Done</button>
+  <button onclick="blurInputs()">Done</button>
 </div>
 
 <script>
-  // ── Data ──────────────────────────────────────────────────────────────────
+  // ── Data: Edwards SAPIEN (nominal + balloon-fill working areas) ─────────────
+  // 23/26/29 unchanged. 20 mm areas from the 20 mm sizing chart
+  // (11 cc nominal; 1 cc ≈ 0.9 mm diameter).
   const valveSizes = [
+    { id: 0, size: 20, conditions: [
+      { id: "20-nominal", name: "Nominal", area: 328 },
+      { id: "20-plus1",   name: "+1cc",    area: 358 },
+      { id: "20-plus2",   name: "+2cc",    area: 390 },
+      { id: "20-plus3",   name: "+3cc",    area: 426 },
+      { id: "20-minus1",  name: "-1cc",    area: 298 },
+      { id: "20-minus2",  name: "-2cc",    area: 271 },
+    ]},
     { id: 1, size: 23, conditions: [
       { id: "23-nominal", name: "Nominal", area: 406 },
       { id: "23-plus1",   name: "+1cc",   area: 428 },
@@ -344,13 +492,28 @@
     ]},
   ];
 
+  // ── Data: Medtronic Evolut FX+ (MSCT selection criteria) ────────────────────
+  // perimMin/diamMin are native lower bounds; *Tis values apply to TAV-in-SAV.
+  const evolutSizes = [
+    { size: 23, perimMin: 56.5, perimMax: 62.8, perimMinTis: 53.4,
+      diamMin: 18, diamMax: 20, diamMinTis: 17, sovDiam: 25, sovHeight: 15 },
+    { size: 26, perimMin: 62.8, perimMax: 72.3, diamMin: 20, diamMax: 23, sovDiam: 27, sovHeight: 15 },
+    { size: 29, perimMin: 72.3, perimMax: 81.7, diamMin: 23, diamMax: 26, sovDiam: 29, sovHeight: 15 },
+    { size: 34, perimMin: 81.7, perimMax: 94.2, diamMin: 26, diamMax: 30, sovDiam: 31, sovHeight: 16 },
+  ];
+
   // ── State ─────────────────────────────────────────────────────────────────
-  let inputArea = null;
+  let platform   = 'sapien';      // 'sapien' | 'evolut'
+  let inputArea  = null;
+  let inputPerim = null;
+  let inputSovD  = null;
+  let inputSovH  = null;
+  let tavInSav   = false;
   let currentView = 'valve';
   let sortCol = 'pct';
   let sortDir = 'asc';
 
-  // ── Color logic ───────────────────────────────────────────────────────────
+  // ── Color logic (SAPIEN heat map) ───────────────────────────────────────────
   function getHeatMapColor(oversizing) {
     if (oversizing >= -5 && oversizing <= 20) {
       const normalized = (oversizing - (-5)) / 25;
@@ -387,7 +550,7 @@
 
   function fmt1(n) { return n.toFixed(1); }
 
-  // ── Render: By Valve ──────────────────────────────────────────────────────
+  // ── Render: SAPIEN By Valve ─────────────────────────────────────────────────
   function renderByValve() {
     const container = document.getElementById('view-by-valve');
     container.innerHTML = valveSizes.map(vs => {
@@ -418,8 +581,7 @@
     }).join('');
   }
 
-  // ── Render: By Oversize ───────────────────────────────────────────────────
-  // Natural order index so we can fall back to original order as a tiebreaker
+  // ── Render: SAPIEN By Oversize ──────────────────────────────────────────────
   let naturalIndex = 0;
   const allItems = [];
   for (const vs of valveSizes) {
@@ -431,10 +593,9 @@
   function renderByOversize() {
     const tbody = document.getElementById('oversize-tbody');
 
-    // Update header highlights and arrows
     const cols = ['size', 'name', 'area', 'pct'];
     cols.forEach(col => {
-      const th = document.querySelector(`th.col-${col === 'size' ? 'size' : col === 'name' ? 'name' : col === 'area' ? 'area' : 'pct'}`);
+      const th = document.querySelector(`th.col-${col}`);
       const arrow = document.getElementById(`arrow-${col}`);
       if (col === sortCol) {
         th.classList.add('sort-active');
@@ -445,13 +606,11 @@
       }
     });
 
-    // Build items with current oversizing
     const items = allItems.map(item => ({
       ...item,
       ov: calcOversizing(item.cond.area)
     }));
 
-    // Condition name natural sort key (Nominal first, then +1cc, +2cc… then -1cc, -2cc…)
     const condOrder = name => {
       if (name === 'Nominal') return 0;
       const m = name.match(/([+-])(\d+)cc/);
@@ -468,7 +627,6 @@
       } else if (sortCol === 'area') {
         va = a.cond.area; vb = b.cond.area;
       } else {
-        // pct — nulls go to end regardless of direction
         if (a.ov === null && b.ov === null) return a.naturalIndex - b.naturalIndex;
         if (a.ov === null) return 1;
         if (b.ov === null) return -1;
@@ -493,7 +651,62 @@
     }).join('');
   }
 
-  // ── View switching ────────────────────────────────────────────────────────
+  // ── Render: Evolut FX+ selection ────────────────────────────────────────────
+  function renderEvolut() {
+    const derived = document.getElementById('evolut-derived');
+    if (inputPerim != null && inputPerim > 0) {
+      const d = inputPerim / Math.PI;
+      derived.innerHTML = `Perimeter-derived diameter: <b>${d.toFixed(1)} mm</b>`;
+    } else {
+      derived.innerHTML = 'Enter a perimeter to highlight the matching valve size.';
+    }
+
+    const tbody = document.getElementById('evolut-tbody');
+    tbody.innerHTML = evolutSizes.map(v => {
+      const pMin = (tavInSav && v.perimMinTis) ? v.perimMinTis : v.perimMin;
+      const dMin = (tavInSav && v.diamMinTis) ? v.diamMinTis : v.diamMin;
+
+      let fits = null;
+      if (inputPerim != null && inputPerim > 0) {
+        let ok = inputPerim >= pMin && inputPerim <= v.perimMax;
+        if (ok && inputSovD != null) ok = inputSovD >= v.sovDiam;
+        if (ok && inputSovH != null) ok = inputSovH >= v.sovHeight;
+        fits = ok;
+      }
+
+      const flag = fits === true ? ' <span class="fit-flag">FIT</span>' : '';
+      return `
+        <tr class="${fits === true ? 'fit' : ''}">
+          <td>${v.size} mm${flag}</td>
+          <td>${pMin}–${v.perimMax}</td>
+          <td>${dMin}–${v.diamMax}</td>
+          <td>≥ ${v.sovDiam}</td>
+          <td>≥ ${v.sovHeight}</td>
+        </tr>`;
+    }).join('');
+  }
+
+  // ── Platform + view switching ───────────────────────────────────────────────
+  function setPlatform(p) {
+    platform = p;
+    const isSapien = p === 'sapien';
+    document.getElementById('plat-sapien').classList.toggle('active', isSapien);
+    document.getElementById('plat-evolut').classList.toggle('active', !isSapien);
+
+    document.getElementById('sapien-inputs').style.display = isSapien ? 'block' : 'none';
+    document.getElementById('evolut-inputs').style.display = isSapien ? 'none' : 'block';
+    document.getElementById('sapien-tabs').style.display = isSapien ? 'flex' : 'none';
+
+    document.getElementById('view-evolut').style.display = isSapien ? 'none' : 'block';
+    if (isSapien) {
+      setView(currentView);
+    } else {
+      document.getElementById('view-by-valve').style.display = 'none';
+      document.getElementById('view-by-oversize').style.display = 'none';
+      renderEvolut();
+    }
+  }
+
   function setView(view) {
     currentView = view;
     document.getElementById('view-by-valve').style.display = view === 'valve' ? 'grid' : 'none';
@@ -513,33 +726,52 @@
     renderByOversize();
   }
 
-  function render() {
-    renderByValve();
-    if (currentView === 'oversize') renderByOversize();
+  function onTisToggle() {
+    tavInSav = document.getElementById('tis-toggle').checked;
+    renderEvolut();
   }
 
-  // ── Input handling ────────────────────────────────────────────────────────
-  const areaInput = document.getElementById('area-input');
-  const clearBtn  = document.getElementById('clear-btn');
+  function render() {
+    if (platform === 'sapien') {
+      renderByValve();
+      if (currentView === 'oversize') renderByOversize();
+    } else {
+      renderEvolut();
+    }
+  }
+
+  // ── Input wiring ────────────────────────────────────────────────────────────
   const kbdToolbar = document.getElementById('kbd-toolbar');
 
-  areaInput.addEventListener('input', () => {
-    const val = parseFloat(areaInput.value);
-    inputArea = isNaN(val) ? null : val;
-    clearBtn.classList.toggle('hidden', areaInput.value === '');
-    render();
-  });
+  function wireInput(inputId, clearId, setter) {
+    const input = document.getElementById(inputId);
+    const clear = document.getElementById(clearId);
+    input.addEventListener('input', () => {
+      const val = parseFloat(input.value);
+      setter(isNaN(val) ? null : val);
+      clear.classList.toggle('hidden', input.value === '');
+      render();
+    });
+    input.addEventListener('focus', () => kbdToolbar.classList.add('visible'));
+    input.addEventListener('blur',  () => kbdToolbar.classList.remove('visible'));
+    clear.addEventListener('click', () => {
+      input.value = '';
+      setter(null);
+      clear.classList.add('hidden');
+      input.blur();
+      render();
+    });
+  }
 
-  areaInput.addEventListener('focus', () => kbdToolbar.classList.add('visible'));
-  areaInput.addEventListener('blur',  () => kbdToolbar.classList.remove('visible'));
+  wireInput('area-input',  'clear-area',  v => inputArea  = v);
+  wireInput('perim-input', 'clear-perim', v => inputPerim = v);
+  wireInput('sovd-input',  'clear-sovd',  v => inputSovD  = v);
+  wireInput('sovh-input',  'clear-sovh',  v => inputSovH  = v);
 
-  clearBtn.addEventListener('click', () => {
-    areaInput.value = '';
-    inputArea = null;
-    clearBtn.classList.add('hidden');
-    areaInput.blur();
-    render();
-  });
+  function blurInputs() {
+    ['area-input','perim-input','sovd-input','sovh-input']
+      .forEach(id => document.getElementById(id).blur());
+  }
 
   // ── Init ──────────────────────────────────────────────────────────────────
   render();
