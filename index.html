@@ -1,781 +1,892 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>Valve Sizing</title>
-  <style>
-    *, *::before, *::after {
-      box-sizing: border-box; margin: 0; padding: 0;
-      -webkit-tap-highlight-color: transparent;
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<meta name="theme-color" content="#0d2438" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<title>Valve Sizing</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  /* ═══ Tokens ═══════════════════════════════════════════════════════════
+     Palette drawn from the printed device sizing card: cool paper, navy
+     rule, steel gray. Teal is the instrument accent, used only for active
+     state and live readouts. */
+  :root {
+    --paper:   #eef1f5;
+    --card:    #ffffff;
+    --sunken:  #f4f6f9;
+    --ink:     #0c1b2a;
+    --ink-2:   #4a5c6e;
+    --ink-3:   #7d8b99;
+    --rule:    #d8e0e8;
+    --rule-2:  #e8edf2;
+    --navy:    #0d2438;
+    --navy-2:  #1a3d5c;
+    --teal:    #0d7a86;
+    --teal-sub:#e2f2f3;
+    --shadow:  0 1px 2px rgba(12,27,42,.06), 0 10px 28px -18px rgba(12,27,42,.45);
+    --radius:  14px;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --paper:   #0a1219;
+      --card:    #121c26;
+      --sunken:  #0e1720;
+      --ink:     #e6edf4;
+      --ink-2:   #9fb0c0;
+      --ink-3:   #6f8093;
+      --rule:    #23323f;
+      --rule-2:  #1b2833;
+      --navy:    #0a1a29;
+      --navy-2:  #14304a;
+      --teal:    #3fb6c2;
+      --teal-sub:#10333a;
+      --shadow:  0 1px 2px rgba(0,0,0,.4), 0 10px 28px -18px rgba(0,0,0,.9);
     }
+  }
 
-    html { height: -webkit-fill-available; }
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+  html{height:-webkit-fill-available;}
 
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-      background: #f2f2f7;
-      color: #000;
-      min-height: 100vh;
-      min-height: -webkit-fill-available;
-    }
+  body{
+    font-family:"IBM Plex Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+    background:var(--paper);
+    color:var(--ink);
+    min-height:100vh;min-height:-webkit-fill-available;
+    -webkit-font-smoothing:antialiased;
+    font-feature-settings:"tnum" 1;
+  }
 
-    header {
-      background: #fff;
-      padding-top: max(16px, env(safe-area-inset-top));
-      padding-left: max(20px, env(safe-area-inset-left));
-      padding-right: max(20px, env(safe-area-inset-right));
-      padding-bottom: 12px;
-      border-bottom: 1px solid #e5e5ea;
-    }
+  .mono{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;font-variant-numeric:tabular-nums;}
 
-    header h1 {
-      font-size: 28px;
-      font-weight: 700;
-      letter-spacing: -0.3px;
-    }
+  /* Micro-label: the instrument voice */
+  .eyebrow{
+    font-family:"IBM Plex Mono",ui-monospace,monospace;
+    font-size:10px;font-weight:500;letter-spacing:.16em;
+    text-transform:uppercase;color:var(--ink-3);
+  }
 
-    main {
-      padding: 20px 16px calc(20px + env(safe-area-inset-bottom));
-      padding-left: max(16px, env(safe-area-inset-left));
-      padding-right: max(16px, env(safe-area-inset-right));
-      max-width: 1100px;
-      margin: 0 auto;
-    }
+  .wrap{max-width:1180px;margin:0 auto;
+    padding-left:max(18px,env(safe-area-inset-left));
+    padding-right:max(18px,env(safe-area-inset-right));}
 
-    /* Input section */
-    .input-section {
-      margin-bottom: 20px;
-    }
+  /* ═══ Bezel header ═══ */
+  header{
+    background:linear-gradient(180deg,var(--navy) 0%,var(--navy-2) 100%);
+    padding-top:max(14px,env(safe-area-inset-top));
+    padding-bottom:0;
+    border-bottom:1px solid rgba(255,255,255,.08);
+  }
+  header .bar{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;padding-bottom:14px;}
+  header .eyebrow{color:rgba(255,255,255,.5);}
+  header h1{
+    font-size:27px;font-weight:600;letter-spacing:-.02em;color:#fff;line-height:1.1;margin-top:3px;
+  }
+  header .hairline{height:2px;background:var(--teal);width:38px;margin-top:10px;border-radius:2px;}
 
-    .input-section label {
-      display: block;
-      font-size: 17px;
-      font-weight: 600;
-      margin-bottom: 8px;
-    }
+  /* ═══ Segmented controls ═══ */
+  .seg{display:flex;gap:3px;padding:3px;border-radius:11px;background:var(--sunken);border:1px solid var(--rule);}
+  .seg button{
+    flex:1;padding:9px 16px;border:none;border-radius:8px;cursor:pointer;background:transparent;
+    font-family:inherit;font-size:14px;font-weight:500;color:var(--ink-2);white-space:nowrap;
+    transition:background .16s,color .16s,box-shadow .16s;-webkit-appearance:none;touch-action:manipulation;
+  }
+  .seg button:hover{color:var(--ink);}
+  .seg button.active{background:var(--card);color:var(--ink);font-weight:600;box-shadow:0 1px 3px rgba(12,27,42,.16);}
+  .seg button:focus-visible{outline:2px solid var(--teal);outline-offset:2px;}
 
-    .input-group { margin-bottom: 14px; }
-    .input-group:last-child { margin-bottom: 0; }
+  /* Platform switch lives in the bezel */
+  .seg.platform{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.14);margin-bottom:14px;}
+  .seg.platform button{color:rgba(255,255,255,.72);}
+  .seg.platform button:hover{color:#fff;}
+  .seg.platform button.active{background:#fff;color:var(--navy);}
 
-    .input-wrap {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
+  main{padding:22px 0 calc(40px + env(safe-area-inset-bottom));}
 
-    .input-wrap input {
-      flex: 1;
-      padding: 10px 14px;
-      font-size: 16px; /* must be >= 16px to prevent iOS auto-zoom */
-      border: 1px solid #c7c7cc;
-      border-radius: 10px;
-      outline: none;
-      background: #fff;
-      transition: border-color 0.15s;
-      -webkit-appearance: none;
-    }
+  /* ═══ Readout panel (inputs) ═══ */
+  .panel{
+    background:var(--card);border:1px solid var(--rule);border-radius:var(--radius);
+    box-shadow:var(--shadow);padding:18px;margin-bottom:16px;
+  }
+  .panel-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:14px;}
+  .panel-head h2{font-size:15px;font-weight:600;letter-spacing:-.01em;}
 
-    .input-wrap input:focus {
-      border-color: #007aff;
-    }
+  .fields{display:grid;gap:13px;grid-template-columns:1fr;}
+  @media(min-width:720px){.fields{grid-template-columns:repeat(3,1fr);}}
 
-    .clear-btn {
-      background: none;
-      border: none;
-      cursor: pointer;
-      padding: 4px;
-      display: flex;
-      align-items: center;
-      opacity: 0.6;
-    }
+  /* Single-field panel: set the readout beside the input, not below it */
+  .measure-inline{display:flex;gap:34px;align-items:flex-end;flex-wrap:wrap;}
+  /* Single-field panel: one column, and min-width:0 so the input's intrinsic
+     width can't blow the column out past the container and collide with the
+     readout sitting beside it. */
+  .measure-inline .fields{flex:0 0 auto;width:264px;grid-template-columns:minmax(0,1fr);}
+  .measure-inline .derived{margin-top:0;padding-top:0;padding-bottom:3px;border-top:none;}
+  @media(max-width:560px){
+    .measure-inline{display:block;}
+    .measure-inline .fields{width:auto;}
+    .measure-inline .derived{margin-top:13px;padding-top:13px;border-top:1px dashed var(--rule);}
+  }
 
-    .clear-btn:hover { opacity: 1; }
+  .field{min-width:0;}
+  .field label{display:block;margin-bottom:6px;}
+  .field .lab{font-size:13px;font-weight:500;color:var(--ink-2);}
+  .inputline{
+    min-width:0;
+    display:flex;align-items:center;background:var(--sunken);
+    border:1px solid var(--rule);border-radius:10px;
+    transition:border-color .16s,box-shadow .16s;
+  }
+  .inputline:focus-within{border-color:var(--teal);box-shadow:0 0 0 3px var(--teal-sub);}
+  .inputline input{
+    flex:1;min-width:0;border:none;background:transparent;outline:none;
+    padding:11px 13px;font-size:17px;font-weight:500;color:var(--ink);
+    font-family:"IBM Plex Mono",ui-monospace,monospace;font-variant-numeric:tabular-nums;
+    -webkit-appearance:none;
+  }
+  .inputline input::placeholder{color:var(--ink-3);font-weight:400;font-size:14px;font-family:"IBM Plex Sans",-apple-system,sans-serif;}
+  .unit{padding-right:12px;font-size:12px;color:var(--ink-3);white-space:nowrap;}
+  .clear-btn{background:none;border:none;cursor:pointer;padding:6px 10px 6px 2px;display:flex;opacity:.5;}
+  .clear-btn:hover{opacity:1;}
+  .clear-btn svg{width:19px;height:19px;fill:var(--ink-3);}
+  .clear-btn.hidden{visibility:hidden;}
 
-    .clear-btn svg { width: 22px; height: 22px; fill: #8e8e93; }
+  .toggle{
+    display:flex;align-items:center;justify-content:space-between;gap:12px;
+    margin-top:13px;padding:11px 14px;background:var(--sunken);
+    border:1px solid var(--rule);border-radius:10px;font-size:14px;color:var(--ink-2);cursor:pointer;
+  }
+  .toggle input{width:19px;height:19px;accent-color:var(--teal);flex-shrink:0;}
 
-    .clear-btn.hidden { visibility: hidden; }
+  /* Derived readout */
+  .derived{
+    margin-top:13px;padding-top:13px;border-top:1px dashed var(--rule);
+    display:flex;flex-wrap:wrap;gap:22px;
+  }
+  .derived .item{display:flex;flex-direction:column;gap:3px;}
+  .derived .val{font-size:19px;font-weight:600;color:var(--teal);letter-spacing:-.01em;}
+  .derived .val.idle{color:var(--ink-3);font-weight:400;}
 
-    /* TAV-in-SAV toggle row */
-    .toggle-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      background: #fff;
-      border: 1px solid #c7c7cc;
-      border-radius: 10px;
-      padding: 10px 14px;
-      margin-top: 14px;
-      font-size: 15px;
-      font-weight: 500;
-    }
-    .toggle-row input { width: 20px; height: 20px; }
+  /* ═══ Signature: the calibration rail ═══ */
+  .rail-panel{
+    background:var(--card);border:1px solid var(--rule);border-radius:var(--radius);
+    box-shadow:var(--shadow);padding:16px 18px 14px;margin-bottom:16px;
+  }
+  .rail-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:11px;}
+  .rail-head .basis{font-size:12px;color:var(--ink-2);}
+  .rail-bar{height:12px;border-radius:3px;border:1px solid var(--rule);}
+  .rail-ticks{position:relative;height:26px;margin-top:2px;}
+  .rail-ticks .t{position:absolute;top:0;transform:translateX(-50%);text-align:center;}
+  .rail-ticks .t i{display:block;width:1px;height:6px;background:var(--rule);margin:0 auto 3px;}
+  .rail-ticks .t.edge i{background:var(--ink-3);height:8px;}
+  .rail-ticks .t span{font-size:10px;color:var(--ink-3);white-space:nowrap;
+    font-family:"IBM Plex Mono",ui-monospace,monospace;}
+  .rail-ticks .t.edge span{color:var(--ink-2);font-weight:500;}
+  .rail-note{font-size:11.5px;color:var(--ink-3);line-height:1.5;margin-top:9px;}
 
-    /* Segmented control */
-    .seg-control {
-      display: flex;
-      background: #e5e5ea;
-      border-radius: 9px;
-      padding: 2px;
-      margin-bottom: 20px;
-    }
+  /* ═══ Valve cards ═══ */
+  #view-by-valve{display:grid;gap:14px;grid-template-columns:1fr;}
+  @media(min-width:680px){#view-by-valve{grid-template-columns:1fr 1fr;}}
+  @media(min-width:1040px){#view-by-valve{grid-template-columns:repeat(4,1fr);}}
 
-    .seg-control button {
-      flex: 1;
-      padding: 7px 12px;
-      border: none;
-      border-radius: 7px;
-      font-size: 14px;
-      font-weight: 500;
-      cursor: pointer;
-      background: transparent;
-      color: #3c3c43;
-      transition: background 0.15s, color 0.15s, box-shadow 0.15s;
-      touch-action: manipulation;
-      -webkit-appearance: none;
-    }
+  .valve-card{
+    background:var(--card);border:1px solid var(--rule);border-radius:var(--radius);
+    box-shadow:var(--shadow);overflow:hidden;display:flex;flex-direction:column;
+  }
+  .vc-head{
+    display:flex;align-items:center;gap:9px;
+    padding:12px 14px;border-bottom:1px solid var(--rule-2);background:var(--sunken);
+  }
+  .vc-size{
+    font-family:"IBM Plex Mono",ui-monospace,monospace;font-variant-numeric:tabular-nums;
+    font-size:16px;font-weight:600;color:#fff;background:var(--navy-2);
+    padding:3px 9px;border-radius:6px;letter-spacing:-.01em;
+  }
+  .vc-label{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);
+    font-family:"IBM Plex Mono",ui-monospace,monospace;}
 
-    .seg-control button.active {
-      background: #fff;
-      color: #000;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.18);
-    }
+  .vc-cols{
+    display:grid;grid-template-columns:1fr auto auto;gap:10px;align-items:center;
+    padding:8px 14px 6px;
+  }
+  .vc-cols span{font-size:10px;letter-spacing:.11em;text-transform:uppercase;color:var(--ink-3);
+    font-family:"IBM Plex Mono",ui-monospace,monospace;}
+  .vc-cols .a{text-align:right;width:66px;}
+  .vc-cols .p{text-align:right;width:66px;}
 
-    /* Platform selector sits a bit prouder than the sub-view control */
-    .platform-control { margin-bottom: 18px; }
-    .platform-control button { padding: 9px 12px; font-size: 15px; font-weight: 600; }
+  .conditions{display:flex;flex-direction:column;gap:5px;padding:0 10px 12px;}
+  .crow{
+    position:relative;overflow:hidden;
+    display:grid;grid-template-columns:1fr auto auto;gap:10px;align-items:center;
+    padding:10px 12px;border-radius:9px;font-size:14.5px;
+  }
+  .crow.idle{background:var(--sunken);border:1px solid var(--rule-2);color:var(--ink-2);}
+  .crow .c-name{font-weight:500;}
+  .crow .c-area{width:66px;text-align:right;font-size:14px;opacity:.92;}
+  .crow .c-pct{width:66px;text-align:right;font-weight:600;}
 
-    /* By Valve view */
-    #view-by-valve {
-      display: grid;
-      gap: 20px;
-      grid-template-columns: 1fr;
-    }
+  /* ═══ Oversize table ═══ */
+  #view-by-oversize{display:none;}
+  .table-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;
+    background:var(--card);border:1px solid var(--rule);border-radius:var(--radius);
+    box-shadow:var(--shadow);padding:6px 12px 12px;}
+  .oversize-table{width:100%;border-collapse:separate;border-spacing:0 5px;min-width:420px;}
+  .oversize-table thead th{
+    padding:11px 13px 9px;font-size:10px;font-weight:600;letter-spacing:.11em;text-transform:uppercase;
+    color:var(--ink-3);cursor:pointer;user-select:none;white-space:nowrap;
+    border-bottom:1px solid var(--rule);text-align:left;
+    font-family:"IBM Plex Mono",ui-monospace,monospace;
+  }
+  .oversize-table thead th:hover{color:var(--ink);}
+  .oversize-table thead th.sort-active{color:var(--teal);border-bottom-color:var(--teal);}
+  .oversize-table thead th.col-area,.oversize-table thead th.col-pct{text-align:right;}
+  .sort-arrow{margin-left:4px;font-size:9px;}
+  .oversize-table tbody tr{background-clip:padding-box;}
+  .oversize-table tbody td{padding:11px 13px;font-size:14.5px;}
+  .oversize-table tbody td:first-child{border-radius:9px 0 0 9px;font-weight:600;}
+  .oversize-table tbody td:last-child{border-radius:0 9px 9px 0;font-weight:600;}
+  .oversize-table td.col-area,.oversize-table td.col-pct{text-align:right;}
+  th.col-size,td.col-size{width:76px;}
+  th.col-name,td.col-name{width:100px;}
+  th.col-pct,td.col-pct{width:104px;}
 
-    @media (min-width: 640px) {
-      #view-by-valve { grid-template-columns: 1fr 1fr; }
-    }
+  /* ═══ Evolut table ═══ */
+  #view-evolut{display:none;}
+  .evolut-table{width:100%;border-collapse:separate;border-spacing:0 5px;min-width:560px;}
+  .evolut-table thead th{
+    padding:11px 12px 9px;font-size:10px;font-weight:600;letter-spacing:.11em;text-transform:uppercase;
+    color:var(--ink-3);white-space:nowrap;border-bottom:1px solid var(--rule);text-align:right;
+    font-family:"IBM Plex Mono",ui-monospace,monospace;
+  }
+  .evolut-table thead th:first-child{text-align:left;}
+  .evolut-table tbody td{padding:12px;font-size:14.5px;text-align:right;background:var(--sunken);color:var(--ink-2);}
+  .evolut-table tbody td:first-child{
+    text-align:left;font-weight:600;color:var(--ink);border-radius:9px 0 0 9px;
+    font-family:"IBM Plex Mono",ui-monospace,monospace;
+  }
+  .evolut-table tbody td:last-child{border-radius:0 9px 9px 0;padding:6px 8px;}
+  .evolut-table tbody td.below{color:var(--ink-3);}
+  .below-tag{
+    display:inline-block;margin-left:7px;padding:2px 6px;border-radius:4px;
+    background:var(--rule);color:var(--ink-3);font-size:9px;letter-spacing:.09em;
+    font-weight:500;text-transform:uppercase;vertical-align:middle;
+    font-family:"IBM Plex Mono",ui-monospace,monospace;
+  }
+  .ov-chip{
+    position:relative;overflow:hidden;
+    display:inline-block;min-width:74px;padding:8px 10px;border-radius:8px;
+    font-size:14.5px;font-weight:600;text-align:right;
+    font-family:"IBM Plex Mono",ui-monospace,monospace;font-variant-numeric:tabular-nums;
+  }
+  .ov-chip.idle{background:transparent;color:var(--ink-3);font-weight:400;}
 
-    @media (min-width: 960px) {
-      #view-by-valve { grid-template-columns: 1fr 1fr 1fr; }
-    }
+  .note{font-size:11.5px;line-height:1.6;color:var(--ink-3);margin-top:16px;max-width:78ch;}
+  .note b{color:var(--ink-2);font-weight:600;}
 
-    .valve-card {
-      background: #fff;
-      border-radius: 12px;
-      padding: 16px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-    }
+  /* ═══ iOS keyboard toolbar ═══ */
+  #kbd-toolbar{
+    display:none;position:fixed;bottom:0;left:0;right:0;z-index:100;
+    background:var(--card);border-top:1px solid var(--rule);
+    padding:9px 18px;padding-bottom:max(9px,env(safe-area-inset-bottom));
+    justify-content:flex-end;
+  }
+  #kbd-toolbar.visible{display:flex;}
+  #kbd-toolbar button{
+    background:none;border:none;font-family:inherit;font-size:16px;font-weight:600;
+    color:var(--teal);padding:4px 8px;cursor:pointer;touch-action:manipulation;
+  }
 
-    .valve-card h2 {
-      font-size: 20px;
-      font-weight: 700;
-      margin-bottom: 12px;
-    }
-
-    .conditions { display: flex; flex-direction: column; gap: 8px; }
-
-    .condition-row {
-      display: flex;
-      align-items: center;
-      padding: 12px 16px;
-      border-radius: 10px;
-      font-size: 15px;
-      gap: 0;
-    }
-
-    .condition-row.plain {
-      background: rgba(0,0,0,0.06);
-    }
-
-    .col-name  { width: 80px; text-align: left; }
-    .col-area  { flex: 1; text-align: right; }
-    .col-pct   { width: 80px; text-align: right; font-weight: 600; }
-
-    /* By Oversize view */
-    #view-by-oversize { display: none; }
-
-    .oversize-table {
-      width: 100%;
-      border-collapse: separate;
-      border-spacing: 0 6px;
-    }
-
-    .oversize-table thead th {
-      padding: 8px 14px;
-      font-size: 13px;
-      font-weight: 600;
-      color: #6c6c70;
-      text-transform: uppercase;
-      letter-spacing: 0.4px;
-      cursor: pointer;
-      user-select: none;
-      white-space: nowrap;
-      background: transparent;
-      border-bottom: 2px solid #e5e5ea;
-    }
-
-    .oversize-table thead th:hover { color: #000; }
-
-    .oversize-table thead th.sort-active { color: #007aff; border-bottom-color: #007aff; }
-
-    .sort-arrow { margin-left: 4px; font-size: 11px; }
-
-    .oversize-table tbody tr { border-radius: 10px; }
-
-    .oversize-table tbody td {
-      padding: 12px 14px;
-      font-size: 15px;
-    }
-
-    .oversize-table tbody td:first-child { border-radius: 10px 0 0 10px; }
-    .oversize-table tbody td:last-child  { border-radius: 0 10px 10px 0; font-weight: 600; }
-
-    .col-size { width: 70px; }
-    .col-name { width: 100px; }
-    .col-area { text-align: right; }
-    .col-pct  { text-align: right; width: 110px; }
-
-    /* Table scroll wrapper for narrow screens */
-    .table-scroll {
-      overflow-x: auto;
-      -webkit-overflow-scrolling: touch;
-      border-radius: 8px;
-    }
-
-    /* Evolut selection view */
-    #view-evolut { display: none; }
-
-    .evolut-table {
-      width: 100%;
-      border-collapse: separate;
-      border-spacing: 0 6px;
-    }
-    .evolut-table thead th {
-      padding: 8px 12px;
-      font-size: 12px;
-      font-weight: 600;
-      color: #6c6c70;
-      text-transform: uppercase;
-      letter-spacing: 0.3px;
-      white-space: nowrap;
-      border-bottom: 2px solid #e5e5ea;
-      text-align: right;
-    }
-    .evolut-table thead th:first-child { text-align: left; }
-    .evolut-table tbody td {
-      padding: 12px 12px;
-      font-size: 15px;
-      text-align: right;
-      background: #fff;
-    }
-    .evolut-table tbody td:first-child { text-align: left; font-weight: 700; border-radius: 10px 0 0 10px; }
-    .evolut-table tbody td:last-child { border-radius: 0 10px 10px 0; }
-    .evolut-table tbody tr.fit td { background: #d6f3df; }
-    .evolut-table tbody tr.fit td:first-child { box-shadow: inset 3px 0 0 #34c759; }
-
-    .fit-flag { font-size: 12px; font-weight: 600; color: #248a3d; }
-
-    .derived {
-      font-size: 13px;
-      color: #6c6c70;
-      margin: -6px 0 16px;
-    }
-    .derived b { color: #000; }
-
-    .note {
-      font-size: 12px;
-      line-height: 1.5;
-      color: #8e8e93;
-      margin-top: 18px;
-    }
-
-    /* Keyboard "Done" toolbar — shown when input is focused on touch devices */
-    #kbd-toolbar {
-      display: none;
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      background: #d1d3d8;
-      border-top: 1px solid #b0b3ba;
-      padding: 8px 16px;
-      padding-bottom: max(8px, env(safe-area-inset-bottom));
-      justify-content: flex-end;
-      z-index: 100;
-    }
-
-    #kbd-toolbar.visible { display: flex; }
-
-    #kbd-toolbar button {
-      background: none;
-      border: none;
-      font-size: 17px;
-      font-weight: 600;
-      color: #007aff;
-      padding: 4px 8px;
-      cursor: pointer;
-      touch-action: manipulation;
-    }
-  </style>
+  @media(prefers-reduced-motion:reduce){*{transition:none!important;}}
+</style>
 </head>
 <body>
 
 <header>
-  <h1>Valve Sizing</h1>
+  <div class="wrap">
+    <div class="bar">
+      <div>
+        <div class="eyebrow">MSCT annulus planning</div>
+        <h1>Valve Sizing</h1>
+        <div class="hairline"></div>
+      </div>
+    </div>
+    <div class="seg platform">
+      <button id="plat-sapien" class="active" onclick="setPlatform('sapien')">Edwards SAPIEN</button>
+      <button id="plat-evolut" onclick="setPlatform('evolut')">Evolut FX+</button>
+    </div>
+  </div>
 </header>
 
-<main>
-  <!-- Platform selector -->
-  <div class="seg-control platform-control">
-    <button id="plat-sapien" class="active" onclick="setPlatform('sapien')">Edwards SAPIEN</button>
-    <button id="plat-evolut" onclick="setPlatform('evolut')">Evolut FX+</button>
-  </div>
+<main class="wrap">
 
-  <!-- SAPIEN inputs -->
-  <div class="input-section" id="sapien-inputs">
-    <div class="input-group">
-      <label for="area-input">Annulus Area (mm²)</label>
-      <div class="input-wrap">
-        <input id="area-input" type="text" inputmode="decimal" placeholder="Enter area" autocomplete="off" autocorrect="off" />
-        <button class="clear-btn hidden" id="clear-area" aria-label="Clear">
-          <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 13.59L15.59 17 12 13.41 8.41 17 7 15.59 10.59 12 7 8.41 8.41 7 12 10.59 15.59 7 17 8.41 13.41 12 17 15.59z"/>
-          </svg>
-        </button>
+  <!-- ── Inputs ─────────────────────────────────────────────── -->
+  <section class="panel">
+    <div class="panel-head">
+      <h2 id="input-title">Measurement</h2>
+      <span class="eyebrow" id="input-basis">Area basis</span>
+    </div>
+
+    <!-- SAPIEN input -->
+    <div id="sapien-inputs">
+      <div class="measure-inline">
+      <div class="fields">
+        <div class="field">
+          <label for="area-input"><span class="lab">Annulus area</span></label>
+          <div class="inputline">
+            <input id="area-input" type="text" inputmode="decimal" placeholder="Enter area" autocomplete="off" autocorrect="off" />
+            <button class="clear-btn hidden" id="clear-area" aria-label="Clear area">
+              <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 13.59L15.59 17 12 13.41 8.41 17 7 15.59 10.59 12 7 8.41 8.41 7 12 10.59 15.59 7 17 8.41 13.41 12 17 15.59z"/></svg>
+            </button>
+            <span class="unit">mm²</span>
+          </div>
+        </div>
+      </div>
+      <div class="derived">
+        <div class="item">
+          <span class="eyebrow">Area-derived diameter</span>
+          <span class="val idle" id="d-area">—</span>
+        </div>
+      </div>
       </div>
     </div>
-  </div>
 
-  <!-- Evolut inputs -->
-  <div class="input-section" id="evolut-inputs" style="display:none;">
-    <div class="input-group">
-      <label for="perim-input">Annulus Perimeter (mm)</label>
-      <div class="input-wrap">
-        <input id="perim-input" type="text" inputmode="decimal" placeholder="Enter perimeter" autocomplete="off" autocorrect="off" />
-        <button class="clear-btn hidden" id="clear-perim" aria-label="Clear">
-          <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 13.59L15.59 17 12 13.41 8.41 17 7 15.59 10.59 12 7 8.41 8.41 7 12 10.59 15.59 7 17 8.41 13.41 12 17 15.59z"/>
-          </svg>
-        </button>
+    <!-- EVOLUT input -->
+    <div id="evolut-inputs" style="display:none;">
+      <div class="fields">
+        <div class="field">
+          <label for="perim-input"><span class="lab">Annulus perimeter</span></label>
+          <div class="inputline">
+            <input id="perim-input" type="text" inputmode="decimal" placeholder="Enter perimeter" autocomplete="off" autocorrect="off" />
+            <button class="clear-btn hidden" id="clear-perim" aria-label="Clear perimeter">
+              <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 13.59L15.59 17 12 13.41 8.41 17 7 15.59 10.59 12 7 8.41 8.41 7 12 10.59 15.59 7 17 8.41 13.41 12 17 15.59z"/></svg>
+            </button>
+            <span class="unit">mm</span>
+          </div>
+        </div>
+        <div class="field">
+          <label for="sovd-input"><span class="lab">Sinus of Valsalva diameter <span style="color:var(--ink-3)">· optional</span></span></label>
+          <div class="inputline">
+            <input id="sovd-input" type="text" inputmode="decimal" placeholder="Not applied" autocomplete="off" autocorrect="off" />
+            <button class="clear-btn hidden" id="clear-sovd" aria-label="Clear sinus diameter">
+              <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 13.59L15.59 17 12 13.41 8.41 17 7 15.59 10.59 12 7 8.41 8.41 7 12 10.59 15.59 7 17 8.41 13.41 12 17 15.59z"/></svg>
+            </button>
+            <span class="unit">mm</span>
+          </div>
+        </div>
+        <div class="field">
+          <label for="sovh-input"><span class="lab">Sinus of Valsalva height <span style="color:var(--ink-3)">· optional</span></span></label>
+          <div class="inputline">
+            <input id="sovh-input" type="text" inputmode="decimal" placeholder="Not applied" autocomplete="off" autocorrect="off" />
+            <button class="clear-btn hidden" id="clear-sovh" aria-label="Clear sinus height">
+              <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 13.59L15.59 17 12 13.41 8.41 17 7 15.59 10.59 12 7 8.41 8.41 7 12 10.59 15.59 7 17 8.41 13.41 12 17 15.59z"/></svg>
+            </button>
+            <span class="unit">mm</span>
+          </div>
+        </div>
+      </div>
+      <label class="toggle" for="tis-toggle">
+        <span>TAV-in-SAV — extends 23 mm lower bound to 53.4 mm / 17 mm</span>
+        <input type="checkbox" id="tis-toggle" onchange="onTisToggle()" />
+      </label>
+      <div class="derived">
+        <div class="item">
+          <span class="eyebrow">Perimeter-derived diameter</span>
+          <span class="val idle" id="d-perim">—</span>
+        </div>
       </div>
     </div>
-    <div class="input-group">
-      <label for="sovd-input">Sinus of Valsalva Diameter (mm) — optional</label>
-      <div class="input-wrap">
-        <input id="sovd-input" type="text" inputmode="decimal" placeholder="Enter SoV diameter" autocomplete="off" autocorrect="off" />
-        <button class="clear-btn hidden" id="clear-sovd" aria-label="Clear">
-          <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 13.59L15.59 17 12 13.41 8.41 17 7 15.59 10.59 12 7 8.41 8.41 7 12 10.59 15.59 7 17 8.41 13.41 12 17 15.59z"/>
-          </svg>
-        </button>
-      </div>
+  </section>
+
+  <!-- ── Calibration rail ───────────────────────────────────── -->
+  <section class="rail-panel">
+    <div class="rail-head">
+      <span class="eyebrow">Oversize scale</span>
+      <span class="basis" id="rail-basis"></span>
     </div>
-    <div class="input-group">
-      <label for="sovh-input">Sinus of Valsalva Height (mm) — optional</label>
-      <div class="input-wrap">
-        <input id="sovh-input" type="text" inputmode="decimal" placeholder="Enter SoV height" autocomplete="off" autocorrect="off" />
-        <button class="clear-btn hidden" id="clear-sovh" aria-label="Clear">
-          <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 13.59L15.59 17 12 13.41 8.41 17 7 15.59 10.59 12 7 8.41 8.41 7 12 10.59 15.59 7 17 8.41 13.41 12 17 15.59z"/>
-          </svg>
-        </button>
-      </div>
-    </div>
-    <div class="toggle-row">
-      <span>TAV-in-SAV (extends 23&nbsp;mm lower bound)</span>
-      <input type="checkbox" id="tis-toggle" onchange="onTisToggle()" />
-    </div>
+    <div class="rail-bar" id="rail-bar"></div>
+    <div class="rail-ticks" id="rail-ticks"></div>
+    <p class="rail-note" id="rail-note"></p>
+  </section>
+
+  <!-- ── SAPIEN view tabs ───────────────────────────────────── -->
+  <div class="seg" id="sapien-tabs" style="margin-bottom:16px;">
+    <button id="tab-by-valve" class="active" onclick="setView('valve')">By valve size</button>
+    <button id="tab-by-oversize" onclick="setView('oversize')">By oversize</button>
   </div>
 
-  <!-- SAPIEN view mode tabs -->
-  <div class="seg-control" id="sapien-tabs">
-    <button id="tab-by-valve" class="active" onclick="setView('valve')">By Valve Size</button>
-    <button id="tab-by-oversize" onclick="setView('oversize')">By Oversize</button>
-  </div>
-
-  <!-- SAPIEN: By Valve view -->
   <div id="view-by-valve"></div>
 
-  <!-- SAPIEN: By Oversize view -->
   <div id="view-by-oversize">
     <div class="table-scroll">
-    <table class="oversize-table">
-      <thead>
-        <tr>
-          <th class="col-size" onclick="setSort('size')">
-            Size <span class="sort-arrow" id="arrow-size"></span>
-          </th>
-          <th class="col-name" onclick="setSort('name')">
-            Condition <span class="sort-arrow" id="arrow-name"></span>
-          </th>
-          <th class="col-area" onclick="setSort('area')">
-            Area (mm²) <span class="sort-arrow" id="arrow-area"></span>
-          </th>
-          <th class="col-pct" onclick="setSort('pct')">
-            Oversize % <span class="sort-arrow" id="arrow-pct"></span>
-          </th>
-        </tr>
-      </thead>
-      <tbody id="oversize-tbody"></tbody>
-    </table>
+      <table class="oversize-table">
+        <thead>
+          <tr>
+            <th class="col-size" onclick="setSort('size')">Size <span class="sort-arrow" id="arrow-size"></span></th>
+            <th class="col-name" onclick="setSort('name')">Condition <span class="sort-arrow" id="arrow-name"></span></th>
+            <th class="col-area" onclick="setSort('area')">Area mm² <span class="sort-arrow" id="arrow-area"></span></th>
+            <th class="col-pct"  onclick="setSort('pct')">Oversize <span class="sort-arrow" id="arrow-pct"></span></th>
+          </tr>
+        </thead>
+        <tbody id="oversize-tbody"></tbody>
+      </table>
     </div>
   </div>
 
-  <!-- Evolut FX+ selection view -->
+  <!-- ── Evolut view ────────────────────────────────────────── -->
   <div id="view-evolut">
-    <div class="derived" id="evolut-derived"></div>
     <div class="table-scroll">
-    <table class="evolut-table">
-      <thead>
-        <tr>
-          <th>Valve</th>
-          <th>Perimeter (mm)</th>
-          <th>Ø (mm)</th>
-          <th>SoV Ø</th>
-          <th>SoV ht</th>
-        </tr>
-      </thead>
-      <tbody id="evolut-tbody"></tbody>
-    </table>
+      <table class="evolut-table">
+        <thead>
+          <tr>
+            <th>Valve</th>
+            <th>Perimeter mm</th>
+            <th>Diameter mm</th>
+            <th>SoV diameter</th>
+            <th>SoV ht</th>
+            <th>Oversize</th>
+          </tr>
+        </thead>
+        <tbody id="evolut-tbody"></tbody>
+      </table>
     </div>
     <p class="note">
-      Evolut FX+ sizes by annulus perimeter/diameter with sinus-of-Valsalva minimums. A row turns green
-      when the entered perimeter falls in range and any entered SoV values meet the minimums. 23&nbsp;mm dagger
-      values (17&nbsp;mm / 53.4&nbsp;mm) apply to TAV-in-SAV only, which is not approved in low- and
-      intermediate-risk patients. Reference aid only — confirm against the current IFU and heart-team judgment.
+      Evolut FX+ sizes by annulus perimeter and diameter with sinus of Valsalva minimums. All four sizes are
+      listed on equal footing; read the entered measurement against the printed ranges. A sinus value is marked
+      <b>below</b> only where it falls under that row's stated minimum. Oversize is <b>perimeter</b> oversizing — nominal valve perimeter divided by annulus perimeter — and is not
+      interchangeable with the area oversizing shown for SAPIEN, which runs roughly double for the same fit.
+      The 23 mm dagger values (53.4 mm / 17 mm) apply to TAV-in-SAV only, which is not approved in low- and
+      intermediate-risk patients.
     </p>
   </div>
+
+  <p class="note" id="global-note">
+    Reference aid only. Verify every value against the current instructions for use. Final sizing is a heart team
+    decision that also accounts for calcium burden and distribution, left ventricular outflow tract anatomy, root
+    angulation, coronary height, and access.
+  </p>
 </main>
 
-<!-- iOS keyboard Done toolbar -->
-<div id="kbd-toolbar">
-  <button onclick="blurInputs()">Done</button>
-</div>
+<div id="kbd-toolbar"><button onclick="blurInputs()">Done</button></div>
 
 <script>
-  // ── Data: Edwards SAPIEN (nominal + balloon-fill working areas) ─────────────
-  // 23/26/29 unchanged. 20 mm areas from the 20 mm sizing chart
-  // (11 cc nominal; 1 cc ≈ 0.9 mm diameter).
+  // ═══════════════════════════════════════════════════════════════════════
+  //  Data
+  // ═══════════════════════════════════════════════════════════════════════
+
+  // Edwards SAPIEN — nominal + balloon-fill working areas (mm²).
+  // 20 mm values from the 20 mm sizing chart (11 cc nominal, 1 cc ≈ 0.9 mm diameter).
   const valveSizes = [
-    { id: 0, size: 20, conditions: [
-      { id: "20-nominal", name: "Nominal", area: 328 },
-      { id: "20-plus1",   name: "+1cc",    area: 358 },
-      { id: "20-plus2",   name: "+2cc",    area: 390 },
-      { id: "20-plus3",   name: "+3cc",    area: 426 },
-      { id: "20-minus1",  name: "-1cc",    area: 298 },
-      { id: "20-minus2",  name: "-2cc",    area: 271 },
+    { id:0, size:20, conditions:[
+      { id:"20-nominal", name:"Nominal", area:328 },
+      { id:"20-plus1",   name:"+1cc",    area:358 },
+      { id:"20-plus2",   name:"+2cc",    area:390 },
+      { id:"20-plus3",   name:"+3cc",    area:426 },
+      { id:"20-minus1",  name:"-1cc",    area:298 },
+      { id:"20-minus2",  name:"-2cc",    area:271 },
     ]},
-    { id: 1, size: 23, conditions: [
-      { id: "23-nominal", name: "Nominal", area: 406 },
-      { id: "23-plus1",   name: "+1cc",   area: 428 },
-      { id: "23-plus2",   name: "+2cc",   area: 450 },
-      { id: "23-minus1",  name: "-1cc",   area: 384 },
-      { id: "23-minus2",  name: "-2cc",   area: 362 },
+    { id:1, size:23, conditions:[
+      { id:"23-nominal", name:"Nominal", area:406 },
+      { id:"23-plus1",   name:"+1cc",    area:428 },
+      { id:"23-plus2",   name:"+2cc",    area:450 },
+      { id:"23-minus1",  name:"-1cc",    area:384 },
+      { id:"23-minus2",  name:"-2cc",    area:362 },
     ]},
-    { id: 2, size: 26, conditions: [
-      { id: "26-nominal", name: "Nominal", area: 518 },
-      { id: "26-plus1",   name: "+1cc",   area: 543 },
-      { id: "26-plus2",   name: "+2cc",   area: 568 },
-      { id: "26-plus3",   name: "+3cc",   area: 593 },
-      { id: "26-plus4",   name: "+4cc",   area: 642 },
-      { id: "26-minus1",  name: "-1cc",   area: 493 },
-      { id: "26-minus2",  name: "-2cc",   area: 468 },
+    { id:2, size:26, conditions:[
+      { id:"26-nominal", name:"Nominal", area:518 },
+      { id:"26-plus1",   name:"+1cc",    area:543 },
+      { id:"26-plus2",   name:"+2cc",    area:568 },
+      { id:"26-plus3",   name:"+3cc",    area:593 },
+      { id:"26-plus4",   name:"+4cc",    area:642 },
+      { id:"26-minus1",  name:"-1cc",    area:493 },
+      { id:"26-minus2",  name:"-2cc",    area:468 },
     ]},
-    { id: 3, size: 29, conditions: [
-      { id: "29-nominal", name: "Nominal", area: 649 },
-      { id: "29-plus1",   name: "+1cc",   area: 672 },
-      { id: "29-plus2",   name: "+2cc",   area: 695 },
-      { id: "29-plus3",   name: "+3cc",   area: 719 },
-      { id: "29-minus1",  name: "-1cc",   area: 626 },
-      { id: "29-minus2",  name: "-2cc",   area: 603 },
+    { id:3, size:29, conditions:[
+      { id:"29-nominal", name:"Nominal", area:649 },
+      { id:"29-plus1",   name:"+1cc",    area:672 },
+      { id:"29-plus2",   name:"+2cc",    area:695 },
+      { id:"29-plus3",   name:"+3cc",    area:719 },
+      { id:"29-minus1",  name:"-1cc",    area:626 },
+      { id:"29-minus2",  name:"-2cc",    area:603 },
     ]},
   ];
 
-  // ── Data: Medtronic Evolut FX+ (MSCT selection criteria) ────────────────────
-  // perimMin/diamMin are native lower bounds; *Tis values apply to TAV-in-SAV.
+  // Medtronic Evolut FX+ — MSCT selection criteria.
+  // Nominal inflow perimeter = π × valve size.
   const evolutSizes = [
-    { size: 23, perimMin: 56.5, perimMax: 62.8, perimMinTis: 53.4,
-      diamMin: 18, diamMax: 20, diamMinTis: 17, sovDiam: 25, sovHeight: 15 },
-    { size: 26, perimMin: 62.8, perimMax: 72.3, diamMin: 20, diamMax: 23, sovDiam: 27, sovHeight: 15 },
-    { size: 29, perimMin: 72.3, perimMax: 81.7, diamMin: 23, diamMax: 26, sovDiam: 29, sovHeight: 15 },
-    { size: 34, perimMin: 81.7, perimMax: 94.2, diamMin: 26, diamMax: 30, sovDiam: 31, sovHeight: 16 },
+    { size:23, perimMin:56.5, perimMax:62.8, perimMinTis:53.4,
+      diamMin:18, diamMax:20, diamMinTis:17, sovDiam:25, sovHeight:15 },
+    { size:26, perimMin:62.8, perimMax:72.3, diamMin:20, diamMax:23, sovDiam:27, sovHeight:15 },
+    { size:29, perimMin:72.3, perimMax:81.7, diamMin:23, diamMax:26, sovDiam:29, sovHeight:15 },
+    { size:34, perimMin:81.7, perimMax:94.2, diamMin:26, diamMax:30, sovDiam:31, sovHeight:16 },
   ];
 
-  // ── State ─────────────────────────────────────────────────────────────────
-  let platform   = 'sapien';      // 'sapien' | 'evolut'
-  let inputArea  = null;
-  let inputPerim = null;
-  let inputSovD  = null;
-  let inputSovH  = null;
-  let tavInSav   = false;
-  let currentView = 'valve';
-  let sortCol = 'pct';
-  let sortDir = 'asc';
+  // ── Acceptable oversizing bands ─────────────────────────────────────────
+  // SAPIEN: AREA oversizing. Unchanged from the original tool.
+  // EVOLUT: PERIMETER oversizing. 10–30% brackets the IFU envelope (which
+  //   computes to ~11.5–30.7%) and Medtronic's 13–31% recommendation; PVL
+  //   falls across quartiles up to 25–30% without a pacemaker penalty.
+  // Edit these two lines to retune the heat map.
+  const BANDS = {
+    sapien: { min:-5, max:20, basis:"Area oversizing",      unit:"area"      },
+    evolut: { min:10, max:30, basis:"Perimeter oversizing", unit:"perimeter" },
+  };
 
-  // ── Color logic (SAPIEN heat map) ───────────────────────────────────────────
-  function getHeatMapColor(oversizing) {
-    if (oversizing >= -5 && oversizing <= 20) {
-      const normalized = (oversizing - (-5)) / 25;
-      const r = Math.round(144 - normalized * 144);
-      const g = Math.round(238 - normalized * 138);
-      const b = Math.round(144 - normalized * 144);
-      return { r, g, b };
+  const RAIL_NOTES = {
+    sapien:"Green spans -5% to 20% area oversizing, deepening toward the upper bound. Below the band favors "
+          +"paravalvular leak and device migration; above it raises annular injury risk.",
+    evolut:"Green spans 10% to 30% perimeter oversizing, deepening toward the upper bound. Below the band favors "
+          +"paravalvular leak and migration; above it raises conduction disturbance and, rarely, annular injury.",
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════
+  //  State
+  // ═══════════════════════════════════════════════════════════════════════
+  let platform='sapien';
+  let inputArea=null, inputPerim=null, inputSovD=null, inputSovH=null;
+  let tavInSav=false;
+  let currentView='valve';
+  let sortCol='pct', sortDir='asc';
+
+  // ═══════════════════════════════════════════════════════════════════════
+  //  Heat map — identical ramp, band supplied per platform
+  // ═══════════════════════════════════════════════════════════════════════
+  // Colour is carried in two channels so it never depends on hue alone:
+  //   1. a dark saturated field behind the row — white text sits here
+  //   2. a bright bar along the bottom edge — no text on it, and its LENGTH
+  //      encodes the value, which stays readable with any colour vision.
+  const RAMP = {
+    bandLo:  { r:39,  g:121, b:76 },   // band minimum  — medium emerald
+    bandHi:  { r:11,  g:71,  b:52 },   // band maximum  — deep emerald
+    outNear: { r:192, g:73,  b:47 },   // just outside  — medium red-orange
+    outFar:  { r:116, g:31,  b:22 },   // far outside   — deep maroon
+  };
+  // Every colour in the ramp is dark enough for white text (worst case
+  // 4.99:1), so the ink is uniform on every row and none reads as flagged.
+  const HEAT_INK = '#ffffff';
+  const WHITE    = { r:255, g:255, b:255 };
+
+  const lerp=(a,b,t)=>Math.round(a+(b-a)*t);
+  const mix=(c1,c2,t)=>({ r:lerp(c1.r,c2.r,t), g:lerp(c1.g,c2.g,t), b:lerp(c1.b,c2.b,t) });
+
+  function getHeatMapColor(oversizing, band){
+    const lo=band.min, hi=band.max;
+    if(oversizing>=lo && oversizing<=hi){
+      return mix(RAMP.bandLo, RAMP.bandHi, (oversizing-lo)/(hi-lo));
     }
-    const distance = oversizing < -5 ? Math.abs(oversizing - (-5)) : Math.abs(oversizing - 20);
-    const normalized = Math.min(distance / 50, 1.0);
-    const r = Math.round(255 - normalized * 116);
-    const g = Math.round(102 - normalized * 102);
-    const b = Math.round(102 - normalized * 102);
-    return { r, g, b };
+    const distance = oversizing<lo ? lo-oversizing : oversizing-hi;
+    return mix(RAMP.outNear, RAMP.outFar, Math.min(distance/50,1.0));
   }
 
-  function getTextColor({ r, g, b }) {
-    const luminance = 0.299 * (r / 255) + 0.587 * (g / 255) + 0.114 * (b / 255);
-    return luminance > 0.5 ? '#000' : '#fff';
+  const barOf = c => mix(c, WHITE, 0.55);   // bar carries no text, so it can be bright
+
+  // Constant by design. Do not key this off background luminance.
+  function getTextColor(){ return HEAT_INK; }
+
+  // Bar length: position of the value on a fixed scale around the band.
+  function barPos(oversizing, band){
+    const lo=band.min-40, hi=band.max+60;
+    return Math.max(0, Math.min(100, ((oversizing-lo)/(hi-lo))*100));
   }
 
-  function colorStyle(oversizing) {
-    const rgb = getHeatMapColor(oversizing);
-    const bg = `rgb(${rgb.r},${rgb.g},${rgb.b})`;
-    const fg = getTextColor(rgb);
-    return `background:${bg};color:${fg};box-shadow:0 1px 4px rgba(0,0,0,0.1);`;
+  function rgbStr(c){ return `rgb(${c.r},${c.g},${c.b})`; }
+
+  function colorStyle(oversizing, band){
+    const c=getHeatMapColor(oversizing,band);
+    const base=rgbStr(c), barCol=rgbStr(barOf(c));
+    const w=barPos(oversizing,band).toFixed(1);
+    const bar=`linear-gradient(to right, ${barCol} 0%, ${barCol} ${w}%,`
+             +` rgba(0,0,0,0) ${w}%, rgba(0,0,0,0) 100%)`;
+    return `background:${bar} left bottom / 100% 3px no-repeat, ${base};color:${HEAT_INK};`;
   }
 
-  // ── Calculation ───────────────────────────────────────────────────────────
-  function calcOversizing(valveArea) {
-    if (inputArea == null || inputArea <= 0) return null;
-    return ((valveArea / inputArea) - 1) * 100;
+  // ═══════════════════════════════════════════════════════════════════════
+  //  Calculation
+  // ═══════════════════════════════════════════════════════════════════════
+  function calcOversizing(valveArea){
+    if(inputArea==null||inputArea<=0) return null;
+    return ((valveArea/inputArea)-1)*100;
+  }
+  function calcPerimOversizing(valveSize){
+    if(inputPerim==null||inputPerim<=0) return null;
+    return (((Math.PI*valveSize)/inputPerim)-1)*100;
+  }
+  const fmt1=n=>n.toFixed(1);
+
+  // ═══════════════════════════════════════════════════════════════════════
+  //  Calibration rail — gradient sampled from the live ramp
+  // ═══════════════════════════════════════════════════════════════════════
+  function renderRail(){
+    const band=BANDS[platform];
+    const lo=band.min-22, hi=band.max+22, steps=60;
+    const stops=[];
+    for(let i=0;i<=steps;i++){
+      const v=lo+(hi-lo)*(i/steps);
+      stops.push(`${rgbStr(getHeatMapColor(v,band))} ${(i/steps*100).toFixed(1)}%`);
+    }
+    document.getElementById('rail-bar').style.background=`linear-gradient(90deg,${stops.join(',')})`;
+    document.getElementById('rail-basis').textContent=band.basis;
+
+    const pos=v=>((v-lo)/(hi-lo))*100;
+    const marks=[
+      {v:lo,           lab:`${Math.round(lo)}%`,        edge:false},
+      {v:band.min,     lab:`${band.min}%`,              edge:true},
+      {v:(band.min+band.max)/2, lab:`${((band.min+band.max)/2).toFixed(0)}%`, edge:false},
+      {v:band.max,     lab:`${band.max}%`,              edge:true},
+      {v:hi,           lab:`${Math.round(hi)}%`,        edge:false},
+    ];
+    document.getElementById('rail-ticks').innerHTML=marks.map(m=>
+      `<div class="t${m.edge?' edge':''}" style="left:${pos(m.v)}%"><i></i><span>${m.lab}</span></div>`
+    ).join('');
+
+    document.getElementById('rail-note').textContent=RAIL_NOTES[platform];
   }
 
-  function fmt1(n) { return n.toFixed(1); }
-
-  // ── Render: SAPIEN By Valve ─────────────────────────────────────────────────
-  function renderByValve() {
-    const container = document.getElementById('view-by-valve');
-    container.innerHTML = valveSizes.map(vs => {
-      // Sort rows by annulus area, smallest first. Copy first so the underlying
-      // data order (used by the By Oversize view) is unchanged.
-      const rows = [...vs.conditions].sort((a, b) => a.area - b.area).map(c => {
-        const ov = calcOversizing(c.area);
-        if (ov !== null) {
-          return `
-            <div class="condition-row" style="${colorStyle(ov)}">
-              <span class="col-name">${c.name}</span>
-              <span class="col-area">${fmt1(c.area)}</span>
-              <span class="col-pct">${fmt1(ov)}%</span>
-            </div>`;
-        } else {
-          return `
-            <div class="condition-row plain">
-              <span class="col-name">${c.name}</span>
-              <span class="col-area">${fmt1(c.area)}</span>
-              <span class="col-pct">—</span>
-            </div>`;
+  // ═══════════════════════════════════════════════════════════════════════
+  //  Render — SAPIEN by valve
+  // ═══════════════════════════════════════════════════════════════════════
+  function renderByValve(){
+    const band=BANDS.sapien;
+    const container=document.getElementById('view-by-valve');
+    container.innerHTML=valveSizes.map(vs=>{
+      // Sort rows by annulus area, smallest first. Copy so the underlying
+      // data order used by the By oversize view is unchanged.
+      const rows=[...vs.conditions].sort((a,b)=>a.area-b.area).map(c=>{
+        const ov=calcOversizing(c.area);
+        if(ov!==null){
+          return `<div class="crow mono" style="${colorStyle(ov,band)}">
+                    <span class="c-name">${c.name}</span>
+                    <span class="c-area">${fmt1(c.area)}</span>
+                    <span class="c-pct">${fmt1(ov)}%</span>
+                  </div>`;
         }
+        return `<div class="crow idle mono">
+                  <span class="c-name">${c.name}</span>
+                  <span class="c-area">${fmt1(c.area)}</span>
+                  <span class="c-pct">—</span>
+                </div>`;
       }).join('');
 
-      return `
-        <div class="valve-card">
-          <h2>${vs.size}mm Valve</h2>
-          <div class="conditions">${rows}</div>
-        </div>`;
+      return `<div class="valve-card">
+                <div class="vc-head">
+                  <span class="vc-size">${vs.size} mm</span>
+                  <span class="vc-label">SAPIEN</span>
+                </div>
+                <div class="vc-cols"><span>Fill</span><span class="a">Area</span><span class="p">Oversize</span></div>
+                <div class="conditions">${rows}</div>
+              </div>`;
     }).join('');
   }
 
-  // ── Render: SAPIEN By Oversize ──────────────────────────────────────────────
-  let naturalIndex = 0;
-  const allItems = [];
-  for (const vs of valveSizes) {
-    for (const c of vs.conditions) {
-      allItems.push({ size: vs.size, cond: c, naturalIndex: naturalIndex++ });
+  // ═══════════════════════════════════════════════════════════════════════
+  //  Render — SAPIEN by oversize
+  // ═══════════════════════════════════════════════════════════════════════
+  let naturalIndex=0;
+  const allItems=[];
+  for(const vs of valveSizes){
+    for(const c of vs.conditions){
+      allItems.push({ size:vs.size, cond:c, naturalIndex:naturalIndex++ });
     }
   }
 
-  function renderByOversize() {
-    const tbody = document.getElementById('oversize-tbody');
+  function renderByOversize(){
+    const band=BANDS.sapien;
+    const tbody=document.getElementById('oversize-tbody');
 
-    const cols = ['size', 'name', 'area', 'pct'];
-    cols.forEach(col => {
-      const th = document.querySelector(`th.col-${col}`);
-      const arrow = document.getElementById(`arrow-${col}`);
-      if (col === sortCol) {
+    ['size','name','area','pct'].forEach(col=>{
+      const th=document.querySelector(`th.col-${col}`);
+      const arrow=document.getElementById(`arrow-${col}`);
+      if(col===sortCol){
         th.classList.add('sort-active');
-        arrow.textContent = sortDir === 'asc' ? '▲' : '▼';
+        arrow.textContent = sortDir==='asc'?'▲':'▼';
       } else {
         th.classList.remove('sort-active');
-        arrow.textContent = '';
+        arrow.textContent='';
       }
     });
 
-    const items = allItems.map(item => ({
-      ...item,
-      ov: calcOversizing(item.cond.area)
-    }));
+    const items=allItems.map(i=>({ ...i, ov:calcOversizing(i.cond.area) }));
 
-    const condOrder = name => {
-      if (name === 'Nominal') return 0;
-      const m = name.match(/([+-])(\d+)cc/);
-      if (!m) return 99;
-      return m[1] === '+' ? parseInt(m[2]) : -parseInt(m[2]);
+    const condOrder=name=>{
+      if(name==='Nominal') return 0;
+      const m=name.match(/([+-])(\d+)cc/);
+      if(!m) return 99;
+      return m[1]==='+'?parseInt(m[2]):-parseInt(m[2]);
     };
 
-    items.sort((a, b) => {
-      let va, vb;
-      if (sortCol === 'size') {
-        va = a.size; vb = b.size;
-      } else if (sortCol === 'name') {
-        va = condOrder(a.cond.name); vb = condOrder(b.cond.name);
-      } else if (sortCol === 'area') {
-        va = a.cond.area; vb = b.cond.area;
-      } else {
-        if (a.ov === null && b.ov === null) return a.naturalIndex - b.naturalIndex;
-        if (a.ov === null) return 1;
-        if (b.ov === null) return -1;
-        va = a.ov; vb = b.ov;
+    items.sort((a,b)=>{
+      let va,vb;
+      if(sortCol==='size'){ va=a.size; vb=b.size; }
+      else if(sortCol==='name'){ va=condOrder(a.cond.name); vb=condOrder(b.cond.name); }
+      else if(sortCol==='area'){ va=a.cond.area; vb=b.cond.area; }
+      else {
+        if(a.ov===null&&b.ov===null) return a.naturalIndex-b.naturalIndex;
+        if(a.ov===null) return 1;
+        if(b.ov===null) return -1;
+        va=a.ov; vb=b.ov;
       }
-      const cmp = va < vb ? -1 : va > vb ? 1 : a.naturalIndex - b.naturalIndex;
-      return sortDir === 'asc' ? cmp : -cmp;
+      const cmp = va<vb?-1 : va>vb?1 : a.naturalIndex-b.naturalIndex;
+      return sortDir==='asc'?cmp:-cmp;
     });
 
-    tbody.innerHTML = items.map(item => {
-      const ovCell = item.ov !== null
-        ? `<td class="col-pct">${fmt1(item.ov)}%</td>`
-        : `<td class="col-pct" style="color:#8e8e93">—</td>`;
-      const rowStyle = item.ov !== null ? colorStyle(item.ov) : 'background:#f2f2f7;';
-      return `
-        <tr style="${rowStyle}">
-          <td class="col-size">${item.size}mm</td>
-          <td class="col-name">${item.cond.name}</td>
-          <td class="col-area">${fmt1(item.cond.area)}</td>
-          ${ovCell}
-        </tr>`;
+    tbody.innerHTML=items.map(item=>{
+      const styled = item.ov!==null ? colorStyle(item.ov,band) : '';
+      const rowStyle = item.ov!==null ? styled : 'background:var(--sunken);color:var(--ink-2);';
+      const pct = item.ov!==null ? `${fmt1(item.ov)}%` : '—';
+      return `<tr class="mono" style="${rowStyle}">
+                <td class="col-size">${item.size} mm</td>
+                <td class="col-name">${item.cond.name}</td>
+                <td class="col-area">${fmt1(item.cond.area)}</td>
+                <td class="col-pct">${pct}</td>
+              </tr>`;
     }).join('');
   }
 
-  // ── Render: Evolut FX+ selection ────────────────────────────────────────────
-  function renderEvolut() {
-    const derived = document.getElementById('evolut-derived');
-    if (inputPerim != null && inputPerim > 0) {
-      const d = inputPerim / Math.PI;
-      derived.innerHTML = `Perimeter-derived diameter: <b>${d.toFixed(1)} mm</b>`;
-    } else {
-      derived.innerHTML = 'Enter a perimeter to highlight the matching valve size.';
-    }
+  // ═══════════════════════════════════════════════════════════════════════
+  //  Render — Evolut
+  // ═══════════════════════════════════════════════════════════════════════
+  function renderEvolut(){
+    const band=BANDS.evolut;
+    const tbody=document.getElementById('evolut-tbody');
 
-    const tbody = document.getElementById('evolut-tbody');
-    tbody.innerHTML = evolutSizes.map(v => {
-      const pMin = (tavInSav && v.perimMinTis) ? v.perimMinTis : v.perimMin;
-      const dMin = (tavInSav && v.diamMinTis) ? v.diamMinTis : v.diamMin;
+    tbody.innerHTML=evolutSizes.map(v=>{
+      const pMin=(tavInSav&&v.perimMinTis)?v.perimMinTis:v.perimMin;
+      const dMin=(tavInSav&&v.diamMinTis)?v.diamMinTis:v.diamMin;
 
-      let fits = null;
-      if (inputPerim != null && inputPerim > 0) {
-        let ok = inputPerim >= pMin && inputPerim <= v.perimMax;
-        if (ok && inputSovD != null) ok = inputSovD >= v.sovDiam;
-        if (ok && inputSovH != null) ok = inputSovH >= v.sovHeight;
-        fits = ok;
-      }
+      const ov=calcPerimOversizing(v.size);
+      const chip = ov!==null
+        ? `<span class="ov-chip" style="${colorStyle(ov,band)}">${fmt1(ov)}%</span>`
+        : `<span class="ov-chip idle">—</span>`;
 
-      const flag = fits === true ? ' <span class="fit-flag">FIT</span>' : '';
-      return `
-        <tr class="${fits === true ? 'fit' : ''}">
-          <td>${v.size} mm${flag}</td>
-          <td>${pMin}–${v.perimMax}</td>
-          <td>${dMin}–${v.diamMax}</td>
-          <td>≥ ${v.sovDiam}</td>
-          <td>≥ ${v.sovHeight}</td>
-        </tr>`;
+      // Sinus values are annotated only where an entered measurement falls
+      // below the row's stated minimum. This is arithmetic against the
+      // printed criteria, not a recommendation, and no row is singled out.
+      const belowD = inputSovD!=null && inputSovD>0 && inputSovD < v.sovDiam;
+      const belowH = inputSovH!=null && inputSovH>0 && inputSovH < v.sovHeight;
+      const tag = '<span class="below-tag">below</span>';
+
+      return `<tr>
+                <td>${v.size} mm</td>
+                <td class="mono">${pMin}–${v.perimMax}</td>
+                <td class="mono">${dMin}–${v.diamMax}</td>
+                <td class="mono${belowD?' below':''}">≥ ${v.sovDiam}${belowD?tag:''}</td>
+                <td class="mono${belowH?' below':''}">≥ ${v.sovHeight}${belowH?tag:''}</td>
+                <td>${chip}</td>
+              </tr>`;
     }).join('');
   }
 
-  // ── Platform + view switching ───────────────────────────────────────────────
-  function setPlatform(p) {
-    platform = p;
-    const isSapien = p === 'sapien';
-    document.getElementById('plat-sapien').classList.toggle('active', isSapien);
-    document.getElementById('plat-evolut').classList.toggle('active', !isSapien);
+  // ═══════════════════════════════════════════════════════════════════════
+  //  Derived readouts
+  // ═══════════════════════════════════════════════════════════════════════
+  function renderDerived(){
+    const da=document.getElementById('d-area');
+    if(inputArea!=null&&inputArea>0){
+      da.textContent=`${(2*Math.sqrt(inputArea/Math.PI)).toFixed(1)} mm`;
+      da.classList.remove('idle');
+    } else { da.textContent='—'; da.classList.add('idle'); }
 
-    document.getElementById('sapien-inputs').style.display = isSapien ? 'block' : 'none';
-    document.getElementById('evolut-inputs').style.display = isSapien ? 'none' : 'block';
-    document.getElementById('sapien-tabs').style.display = isSapien ? 'flex' : 'none';
+    const dp=document.getElementById('d-perim');
+    if(inputPerim!=null&&inputPerim>0){
+      dp.textContent=`${(inputPerim/Math.PI).toFixed(1)} mm`;
+      dp.classList.remove('idle');
+    } else { dp.textContent='—'; dp.classList.add('idle'); }
+  }
 
-    document.getElementById('view-evolut').style.display = isSapien ? 'none' : 'block';
-    if (isSapien) {
+  // ═══════════════════════════════════════════════════════════════════════
+  //  Switching
+  // ═══════════════════════════════════════════════════════════════════════
+  function setPlatform(p){
+    platform=p;
+    const isSapien = p==='sapien';
+    document.getElementById('plat-sapien').classList.toggle('active',isSapien);
+    document.getElementById('plat-evolut').classList.toggle('active',!isSapien);
+
+    document.getElementById('sapien-inputs').style.display = isSapien?'block':'none';
+    document.getElementById('evolut-inputs').style.display = isSapien?'none':'block';
+    document.getElementById('sapien-tabs').style.display   = isSapien?'flex':'none';
+    document.getElementById('view-evolut').style.display   = isSapien?'none':'block';
+
+    document.getElementById('input-basis').textContent = isSapien?'Area basis':'Perimeter basis';
+
+    if(isSapien){
       setView(currentView);
     } else {
-      document.getElementById('view-by-valve').style.display = 'none';
-      document.getElementById('view-by-oversize').style.display = 'none';
-      renderEvolut();
+      document.getElementById('view-by-valve').style.display='none';
+      document.getElementById('view-by-oversize').style.display='none';
+      render();
     }
+    renderRail();
   }
 
-  function setView(view) {
-    currentView = view;
-    document.getElementById('view-by-valve').style.display = view === 'valve' ? 'grid' : 'none';
-    document.getElementById('view-by-oversize').style.display = view === 'oversize' ? 'block' : 'none';
-    document.getElementById('tab-by-valve').classList.toggle('active', view === 'valve');
-    document.getElementById('tab-by-oversize').classList.toggle('active', view === 'oversize');
+  function setView(view){
+    currentView=view;
+    document.getElementById('view-by-valve').style.display    = view==='valve'?'grid':'none';
+    document.getElementById('view-by-oversize').style.display = view==='oversize'?'block':'none';
+    document.getElementById('tab-by-valve').classList.toggle('active',view==='valve');
+    document.getElementById('tab-by-oversize').classList.toggle('active',view==='oversize');
     render();
   }
 
-  function setSort(col) {
-    if (sortCol === col) {
-      sortDir = sortDir === 'asc' ? 'desc' : 'asc';
-    } else {
-      sortCol = col;
-      sortDir = 'asc';
-    }
+  function setSort(col){
+    if(sortCol===col){ sortDir = sortDir==='asc'?'desc':'asc'; }
+    else { sortCol=col; sortDir='asc'; }
     renderByOversize();
   }
 
-  function onTisToggle() {
-    tavInSav = document.getElementById('tis-toggle').checked;
+  function onTisToggle(){
+    tavInSav=document.getElementById('tis-toggle').checked;
     renderEvolut();
   }
 
-  function render() {
-    if (platform === 'sapien') {
+  function render(){
+    renderDerived();
+    if(platform==='sapien'){
       renderByValve();
-      if (currentView === 'oversize') renderByOversize();
+      if(currentView==='oversize') renderByOversize();
     } else {
       renderEvolut();
     }
   }
 
-  // ── Input wiring ────────────────────────────────────────────────────────────
-  const kbdToolbar = document.getElementById('kbd-toolbar');
+  // ═══════════════════════════════════════════════════════════════════════
+  //  Inputs
+  // ═══════════════════════════════════════════════════════════════════════
+  const kbdToolbar=document.getElementById('kbd-toolbar');
 
-  function wireInput(inputId, clearId, setter) {
-    const input = document.getElementById(inputId);
-    const clear = document.getElementById(clearId);
-    input.addEventListener('input', () => {
-      const val = parseFloat(input.value);
-      setter(isNaN(val) ? null : val);
-      clear.classList.toggle('hidden', input.value === '');
+  function wireInput(inputId,clearId,setter){
+    const input=document.getElementById(inputId);
+    const clear=document.getElementById(clearId);
+    input.addEventListener('input',()=>{
+      const val=parseFloat(input.value);
+      setter(isNaN(val)?null:val);
+      clear.classList.toggle('hidden',input.value==='');
       render();
     });
-    input.addEventListener('focus', () => kbdToolbar.classList.add('visible'));
-    input.addEventListener('blur',  () => kbdToolbar.classList.remove('visible'));
-    clear.addEventListener('click', () => {
-      input.value = '';
-      setter(null);
+    input.addEventListener('focus',()=>kbdToolbar.classList.add('visible'));
+    input.addEventListener('blur', ()=>kbdToolbar.classList.remove('visible'));
+    clear.addEventListener('click',()=>{
+      input.value=''; setter(null);
       clear.classList.add('hidden');
-      input.blur();
-      render();
+      input.blur(); render();
     });
   }
 
-  wireInput('area-input',  'clear-area',  v => inputArea  = v);
-  wireInput('perim-input', 'clear-perim', v => inputPerim = v);
-  wireInput('sovd-input',  'clear-sovd',  v => inputSovD  = v);
-  wireInput('sovh-input',  'clear-sovh',  v => inputSovH  = v);
+  wireInput('area-input','clear-area', v=>inputArea =v);
+  wireInput('perim-input','clear-perim',v=>inputPerim=v);
+  wireInput('sovd-input','clear-sovd', v=>inputSovD =v);
+  wireInput('sovh-input','clear-sovh', v=>inputSovH =v);
 
-  function blurInputs() {
+  function blurInputs(){
     ['area-input','perim-input','sovd-input','sovh-input']
-      .forEach(id => document.getElementById(id).blur());
+      .forEach(id=>document.getElementById(id).blur());
   }
 
-  // ── Init ──────────────────────────────────────────────────────────────────
+  // ═══ Init ═══
+  renderRail();
   render();
 </script>
 </body>
