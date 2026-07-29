@@ -554,7 +554,9 @@
   function renderByValve() {
     const container = document.getElementById('view-by-valve');
     container.innerHTML = valveSizes.map(vs => {
-      const rows = vs.conditions.map(c => {
+      // Sort rows by annulus area, smallest first. Copy first so the underlying
+      // data order (used by the By Oversize view) is unchanged.
+      const rows = [...vs.conditions].sort((a, b) => a.area - b.area).map(c => {
         const ov = calcOversizing(c.area);
         if (ov !== null) {
           return `
