@@ -300,6 +300,30 @@
     color:var(--teal);padding:4px 8px;cursor:pointer;touch-action:manipulation;
   }
 
+
+  /* ═══ Phone: both tables must fit without horizontal scrolling ═══ */
+  .lab-abbr{display:none;}
+  @media(max-width:560px){
+    .lab-full{display:none;}
+    .lab-abbr{display:inline;}
+
+    .table-scroll{padding:4px 7px 9px;}
+
+    .oversize-table{min-width:0;}
+    .oversize-table thead th{padding:9px 5px 8px;font-size:9px;letter-spacing:.05em;}
+    .oversize-table tbody td{padding:10px 5px;font-size:13px;}
+    th.col-size,td.col-size{width:46px;}
+    th.col-name,td.col-name{width:58px;}
+    th.col-pct,td.col-pct{width:58px;}
+
+    .evolut-table{min-width:0;}
+    .evolut-table thead th{padding:9px 3px 8px;font-size:8.5px;letter-spacing:.03em;}
+    .evolut-table tbody td{padding:10px 3px;font-size:11.5px;}
+    .evolut-table tbody td:last-child{padding:4px 3px;}
+    .ov-chip{min-width:48px;padding:6px 5px;font-size:11.5px;}
+    .below-tag{margin-left:3px;padding:1px 3px;font-size:7.5px;letter-spacing:.03em;}
+  }
+
   @media(prefers-reduced-motion:reduce){*{transition:none!important;}}
 </style>
 </head>
@@ -426,9 +450,9 @@
         <thead>
           <tr>
             <th class="col-size" onclick="setSort('size')">Size <span class="sort-arrow" id="arrow-size"></span></th>
-            <th class="col-name" onclick="setSort('name')">Condition <span class="sort-arrow" id="arrow-name"></span></th>
-            <th class="col-area" onclick="setSort('area')">Area mm² <span class="sort-arrow" id="arrow-area"></span></th>
-            <th class="col-pct"  onclick="setSort('pct')">Oversize <span class="sort-arrow" id="arrow-pct"></span></th>
+            <th class="col-name" onclick="setSort('name')"><span class="lab-full">Condition</span><span class="lab-abbr">Fill</span> <span class="sort-arrow" id="arrow-name"></span></th>
+            <th class="col-area" onclick="setSort('area')"><span class="lab-full">Area mm²</span><span class="lab-abbr">Area</span> <span class="sort-arrow" id="arrow-area"></span></th>
+            <th class="col-pct"  onclick="setSort('pct')"><span class="lab-full">Oversize</span><span class="lab-abbr">Over</span> <span class="sort-arrow" id="arrow-pct"></span></th>
           </tr>
         </thead>
         <tbody id="oversize-tbody"></tbody>
@@ -443,11 +467,11 @@
         <thead>
           <tr>
             <th>Valve</th>
-            <th>Perimeter mm</th>
-            <th>Diameter mm</th>
-            <th>SoV diameter</th>
-            <th>SoV ht</th>
-            <th>Oversize</th>
+            <th><span class="lab-full">Perimeter mm</span><span class="lab-abbr">Perim</span></th>
+            <th><span class="lab-full">Diameter mm</span><span class="lab-abbr">Diam</span></th>
+            <th><span class="lab-full">SoV diameter</span><span class="lab-abbr">SoV d</span></th>
+            <th><span class="lab-full">SoV ht</span><span class="lab-abbr">SoV h</span></th>
+            <th><span class="lab-full">Oversize</span><span class="lab-abbr">Over</span></th>
           </tr>
         </thead>
         <tbody id="evolut-tbody"></tbody>
